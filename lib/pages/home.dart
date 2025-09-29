@@ -69,7 +69,6 @@ class HomeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    gameDataBank.initBanks();
     addSkills();
     logger.i('Loading app...');
     return const MaterialApp(

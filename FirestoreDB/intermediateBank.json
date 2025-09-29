@@ -1,0 +1,145 @@
+[
+    {
+        "type": "JumbleGameData",
+        "id": "jumble.3",
+        "displayedProblem": "Archery Team A hit the target 367 times. Team B hit the target 412 times. Did the two teams hit the target 800 times? If not, by how much did they miss?",
+        "multiAcceptedAnswers": ["They missed twenty-one times"],
+        "writtenPrompt": "Answer the short-response question using the blocks below.",
+        "optionList": ["seven hundred and seventy nine", "They", "twenty-one", "missed", "seven hundred seventy", "times"],
+        "skills": ["word_problem_written_form", "multiple_operations", "three_place_subtraction"],
+        "tags": ["math", "subtraction", "word_problem"]
+    },
+    {
+        "type": "JumbleGameData",
+        "id": "jumble.5",
+        "displayedProblem": "375 + 109 = 484",
+        "multiAcceptedAnswers": ["three hundred seventy five plus one hundred and nine equals four hundred eighty four"],
+        "optionList": ["three hundred seventy five", "minus", "one o nine", "three seven five", "one hundred and nine", "plus", "thirty seven and five", "four hundred eighty four", "equals"],
+        "skills": ["written_three_place_number_values"],
+        "tags": ["math", "addition", "written_numbers"]
+    },
+    {
+        "type": "PlaybackGameData",
+        "id": "playback.3",
+        "webAudioLink": "",
+        "multiAcceptedAnswers": ["one"],
+        "optionList": ["ten", "eight", "five", "three", "six", "one", "eight", "nine", "two"],
+        "writtenPrompt": "Listen to the audio and then create your response with the choices below.",
+        "audioTranscript": "Lome's cat had 6 kittens that he gave equally to his 6 friends. How many kittens did each friend get?",
+        "skills": ["spoken_written_form", "single_digit_division"],
+        "tags": ["division", "audio", "spoken_response"]
+    },
+    {
+        "type": "PlaybackGameData",
+        "id": "playback.4",
+        "webAudioLink": "",
+        "multiAcceptedAnswers": ["eight"],
+        "optionList": ["ten", "eight", "five", "three", "six", "one", "eight", "nine", "two"],
+        "writtenPrompt": "Listen to the audio and then create your response with the choices below.",
+        "audioTranscript": "Raffle tickets sell for $1 each. How many tickets can Thorn buy for $8?",
+        "skills": ["spoken_written_form", "money", "single_digit_division"],
+        "tags": ["division", "money", "audio"]
+    },
+    {
+        "type": "PlaybackGameData",
+        "id": "playback.5",
+        "webAudioLink": "",
+        "multiAcceptedAnswers": ["two"],
+        "optionList": ["ten", "eight", "five", "three", "six", "one", "eight", "nine", "two"],
+        "writtenPrompt": "Listen to the audio and then create your response with the choices below.",
+        "audioTranscript": "Emily has $12 and wants to buy some books. The books are $6 each. How many books can Emily buy?",
+        "skills": ["spoken_written_form", "money", "single_digit_division"],
+        "tags": ["division", "money", "audio"]
+    },
+    {
+        "type": "ReadAloudGameData",
+        "id": "reading.1",
+        "displayedProblem": "14 x 34 = ??",
+        "writtenPrompt": "What is the product of the following expression?",
+        "addtionalInstructions": "Only say the product, do not repeat the expression.",
+        "multiAcceptedAnswers": ["four hundred seventy six", "four hundred and seventy six", "476"],
+        "skills": ["two_place_multiplication", "self-spoken_written_form"],
+        "tags": ["multiplication", "spoken_response"]
+    },
+    {
+        "type": "ReadAloudGameData",
+        "id": "reading.2",
+        "displayedProblem": "When a number is multiplied by 8, the product is 64,000. What is that number?",
+        "addtionalInstructions": "Only say the product, do not repeat the expression.",
+        "multiAcceptedAnswers": ["eight thousand", "8000"],
+        "skills": ["three_or_more_place_multiplication", "self-spoken_written_form"],
+        "tags": ["multiplication", "spoken_response"]
+    },
+    {
+        "type": "TypingGameData",
+        "id": "typing.3",
+        "displayedProblem": "Elizabeth and Jeanne are covering a fireplace mantel with 4500 fancy tacks. Elisabeth has added 934 tacks to the mantel. Jeanne has added 1,093 tacks. How many tacks do they have to add to complete the mantel?",
+        "multiAcceptedAnswers": ["two thousand four hundred and seventy three", "two thousand four hundred seventy three"],
+        "writtenPrompt": "Type the remaining tacks needed in written form",
+        "skills": ["four_or_more_place_addition", "written_form"],
+        "tags": ["addition", "word_problem", "typing"]
+    },
+    {
+        "type": "TypingGameData",
+        "id": "typing.4",
+        "displayedProblem": "Dancers are placed in groups of 4 for a square dance. There are 56 dancers. How many groups of 4 can be made?",
+        "multiAcceptedAnswers": ["fourteen"],
+        "writtenPrompt": "Type just the answer",
+        "skills": ["two_place_addition", "word_problem_written_form"],
+        "tags": ["division", "typing", "word_problem"]
+    },
+    {
+        "type": "TypingGameData",
+        "id": "typing.5",
+        "displayedProblem": "194 + 203 + 576 = 973",
+        "multiAcceptedAnswers": [
+            "one hundred ninety four plus two hundred three plus five hundred seventy six is nine hundred seventy three",
+            "one hundred and ninety four plus two hundred and three plus five hundred and seventy six is nine hundred and seventy three"
+        ],
+        "writtenPrompt": "Type the expression in written form. Use 'and' as needed.",
+        "skills": ["three_place_addition", "written_form"],
+        "tags": ["addition", "typing", "written_expression"]
+    },
+    {
+        "type": "FillBlanksGameData",
+        "id": "fill.4",
+        "displayedProblem": "A puppet show has three acts. Each act is 20 minutes long. There are 10-minute intermissions between the acts. How long will the show last?",
+        "multiAcceptedAnswers": ["times", "plus", "equals"],
+        "writtenPrompt": "Use the options below to answer the word problem.",
+        "blankForm": "twenty minutes ____ three acts ____ ten intermissions times three acts ____ ninety minutes total.",
+        "optionList": ["plus", "minus", "times", "minus ", "divided by", "equals"],
+        "skills": ["multiple_operations", "written_form", "time"],
+        "tags": ["word_problem", "fill_in_the_blank", "time"]
+    },
+    {
+        "type": "FillBlanksGameData",
+        "id": "fill.5",
+        "displayedProblem": "195,037",
+        "multiAcceptedAnswers": ["hundred thousands", "hundreds", "ones", "ten thousands", "tens", "thousands"],
+        "writtenPrompt": "Use the blocks to label the place value of each number",
+        "blankForm": "1: ____ , 0: ____ , 7: ____ , 9: ____ , 3: ____ , 5: ____ ",
+        "optionList": ["ones", "tens", "hundreds", "ten thousands", "hundred thousands", "thousands"],
+        "skills": ["four_or_more_number_places", "written_form"],
+        "tags": ["place_value", "fill_in_the_blank", "numbers"]
+    },
+    {
+        "type": "TypingGameData",
+        "id": "typing.10",
+        "displayedProblem": "Mary Beth has 215 stickers. She wants to fill 2 albums with the same number of stickers in each. She figures out that about 107 stickers will fit in each, with one left over.",
+        "multiAcceptedAnswers": ["two hundred and fifteen divided by two is one hundred seven and five tenths", "two hundred and fifteen over two is one hundred seven and five tenths"],
+        "writtenPrompt": "Write the number sentence (or expression) representing this problem using division in written form.",
+        "skills": ["three_place_division", "written_form", "number_sentences"],
+        "tags": ["division", "typing", "word_problem"]
+    },
+    {
+        "type": "PlaybackGameData",
+        "id": "playback.9",
+        "webAudioLink": "/audio/level_up_3h.mp3",
+        "multiAcceptedAnswers": ["twenty eight"],
+        "optionList": ["twenty", "twenty nine", "twenty eight", "fourteen", "fourty two", "fifteen", "forty-eight"],
+        "writtenPrompt": "Listen to the audio and then create your response with the choices below",
+        "audioTranscript": "The refreshment table includes cups of fruit punch. There are 84 cups of fruit punch in one bowl. Suppose each dancer can get 3 cups of punch from the bowl. How many dancers does the bowl serve?",
+        "skills": ["spoken_written_form", "single_digit_division"],
+        "tags": ["division", "audio", "spoken_response"]
+    }
+]

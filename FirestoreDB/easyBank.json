@@ -1,0 +1,139 @@
+[
+    {
+        "type": "JumbleGameData",
+        "id": "jumble.1",
+        "displayedProblem": "Sally is 5 years old. Her mother 8 times as old as Sally is. How old is her mother?",
+        "multiAcceptedAnswers": ["She is forty years-old"],
+        "writtenPrompt": "Answer the short-response question using the blocks below.",
+        "optionList": ["She", "eight", "five", "forty", "thrity-two", "is", "forty-eight", "years-old"],
+        "skills": ["single_digit_addition", "word_problem_written_form"],
+        "tags": ["age", "multiplication", "short-response"]
+    },
+    {
+        "type": "JumbleGameData",
+        "id": "jumble.2",
+        "displayedProblem": "Franklin has a set of building blocks with 176 pieces. He received 2 more sets as gifts. One has 95 pieces; the other has 160 pieces. How many building blocks does Franklin have all together?",
+        "multiAcceptedAnswers": ["Franklin has four hundred and thirty one blocks"],
+        "writtenPrompt": "Answer the short-response question using the blocks below.",
+        "optionList": ["blocks", "four hundred and thirty one", "Franklin", "fourty-three and one", "has", "four thirty one"],
+        "skills": ["word_problem_written_form", "three_place_addition"],
+        "tags": ["addition", "word-problem", "counting"]
+    },
+    {
+        "type": "JumbleGameData",
+        "id": "jumble.4",
+        "displayedProblem": "4153 + 3567 = 7720",
+        "multiAcceptedAnswers": [
+            "four thousand one hundred and fifty three plus three thousand five hundred and sixty seven equals seven thousand seven hundred and twenty",
+            "four thousand one hundred and fifty three plus three thousand five hundred and sixty seven is seven thousand seven hundred and twenty"
+        ],
+        "optionList": [
+            "four thousand one hundred and fifty three", "minus", "fourty one hundred and fifty three",
+            "thirty five hundred and sixty seven", "three thousand five hundred and sixty seven",
+            "plus", "seventy seven hundred and twenty", "seven thousand seven hundred and twenty", "equals"
+        ],
+        "skills": ["written_four_place_number_values"],
+        "tags": ["addition", "place-value", "four-digit"]
+    },
+    {
+        "type": "PlaybackGameData",
+        "id": "playback.1",
+        "webAudioLink": "",
+        "audioTranscript": "Five times what number results in thrity?",
+        "multiAcceptedAnswers": ["six"],
+        "optionList": ["seven", "eight", "five", "three", "six", "one", "nine"],
+        "writtenPrompt": "Listen to the audio and then create your response with the choices below. Only submit the number.",
+        "skills": ["single_digit_addition", "spoken_written_form"],
+        "tags": ["multiplication", "audio", "listening"]
+    },
+    {
+        "type": "PlaybackGameData",
+        "id": "playback.2",
+        "webAudioLink": "",
+        "audioTranscript": "Jack has 40 trading cards that he would like to give to his 5 friends. If he shares them equally, how many cards will he give to each?",
+        "multiAcceptedAnswers": ["eight"],
+        "optionList": ["ten", "eight", "five", "three", "six", "one", "eight", "nine"],
+        "writtenPrompt": "Listen to the audio and then create your response with the choices below.",
+        "skills": ["spoken_written_form", "single_digit_division"],
+        "tags": ["division", "sharing", "audio"]
+    },
+    {
+        "type": "TypingGameData",
+        "id": "typing.1",
+        "displayedProblem": "4153 + 3567 = 7720",
+        "multiAcceptedAnswers": [
+            "four thousand one hundred and fifty three plus three thousand five hundred and sixty seven equals seven thousand seven hundred and twenty",
+            "four thousand one hundred and fifty three plus three thousand five hundred and sixty seven is seven thousand seven hundred and twenty"
+        ],
+        "skills": ["four_or_more_place_addition", "written_form"],
+        "tags": ["typing", "addition", "four-digit"]
+    },
+    {
+        "type": "TypingGameData",
+        "id": "typing.2",
+        "displayedProblem": "Patrick has filled 1,485 of 3,000 baseball cards. How many cards are left to be filled?",
+        "multiAcceptedAnswers": ["one thousand five hundred and fifteen", "one thousand five hundred fifteen"],
+        "writtenPrompt": "Type the remaining card amount in standard written form.",
+        "skills": ["four_or_more_place_addition", "written_form"],
+        "tags": ["subtraction", "typing", "card-collection"]
+    },
+    {
+        "type": "FillBlanksGameData",
+        "id": "fill.2",
+        "displayedProblem": "Archery Team A hit the target 367 times. Team B hit the target 412 times. How many times did they hit the target?",
+        "multiAcceptedAnswers": ["seven hundred and seventy nine"],
+        "writtenPrompt": "Use the options below to answer the word problem.",
+        "blankForm": "The teams hit the target ____ times",
+        "optionList": ["eight hundred", "twenty one", "seven hundred and seventy nine", "four hundred and tweleve", "three hundred and sixty seven"],
+        "skills": ["three_place_addition", "written_form"],
+        "tags": ["addition", "fill-blank", "team-score"]
+    },
+    {
+        "type": "FillBlanksGameData",
+        "id": "fill.3",
+        "displayedProblem": "Murphy has an article with 72,885 words and an article with 59,993 words. How many more words does the longer article have?",
+        "multiAcceptedAnswers": ["tweleve thousand eight hundred and ninety two"],
+        "writtenPrompt": "Use the options below to answer the word problem.",
+        "blankForm": "The longer article has ____ more words than the shorter one.",
+        "optionList": [
+            "seventy two thousand eight hundred and eighty five",
+            "tweleve thousand eight hundred and ninety two",
+            "fifty nine thousand nine hundred and ninrty three",
+            "one hundred two thousand eight hundred and ninety two",
+            "five hundred thousand nine thousand nine hundred and ninety three"
+        ],
+        "skills": ["four_or_more_place_addition", "written_form"],
+        "tags": ["subtraction", "comparison", "fill-blank"]
+    },
+    {
+        "type": "JumbleGameData",
+        "id": "jumble.6",
+        "displayedProblem": "158 + 217 + 325 = 700",
+        "multiAcceptedAnswers": [
+            "one hundred and fifty eight plus two hundred and seventeen plus three hundred and twenty five equals seven hundred",
+            "one hundred and fifty eight plus two hundred and seventeen plus three hundred and twenty five is seven hundred"
+        ],
+        "optionList": [
+            "one hundred and fifty eight", "plus ", "twenty one and seven",
+            "thirty five hundred and sixty seven", "three hundred and twenty five",
+            "plus", "seven hundred", "two hundred and seventeen", "equals"
+        ],
+        "skills": ["written_three_place_number_values", "multiple_operations"],
+        "tags": ["addition", "multi-step", "jumble"]
+    },
+    {
+        "type": "JumbleGameData",
+        "id": "jumble.7",
+        "displayedProblem": "176 + 95 + 160 = 431",
+        "multiAcceptedAnswers": [
+            "one hundred and seventy six plus ninety five plus one hundred and sixty equals four hundred and thirty one",
+            "one hundred and seventy six plus ninety five plus one hundred and sixty is four hundred and thirty one"
+        ],
+        "optionList": [
+            "ninety five", "plus ", "four hundred and thirty one", "seventeen and six",
+            "one hundred and seventy six", "plus", "four thrity one", "one hundred and sixty", "equals"
+        ],
+        "skills": ["written_two_place_number_values", "multiple_operations"],
+        "tags": ["addition", "multi-step", "jumble"]
+    }
+]

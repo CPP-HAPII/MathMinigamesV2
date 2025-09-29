@@ -1,0 +1,152 @@
+
+[
+  {
+    "type": "FillBlanksGameData",
+    "id": "fill.6",
+    "displayedProblem": "0.1294",
+    "multiAcceptedAnswers": ["tenths", "ten thousandths", "hundredths", "thousandths", "ones"],
+    "writtenPrompt": "Use the options below to answer the word problem.",
+    "blankForm": "1: ____ , 4: ____ , 2: ____ , 9: ____ , 0: ____",
+    "optionList": ["ones", "hundreds", "tenths", "hundredths", "thousandths", "hundreds", "ten thousandths"],
+    "skills": ["four_or_more_number_places", "written_form"],
+    "tags": ["place_value", "fill_in_the_blank", "decimals"]
+  },
+  {
+    "type": "FillBlanksGameData",
+    "id": "fill.7",
+    "displayedProblem": "one thousand two hundred ninety-four ten-thousandths",
+    "multiAcceptedAnswers": ["1", "2", "9", "2"],
+    "writtenPrompt": "Create the number form of this number written in written form",
+    "blankForm": "0. ____ ____ ____ ____",
+    "optionList": ["1", "3", "5", "7", "9", "2", "4", "6", "8"],
+    "skills": ["four_or_more_number_places", "written_form"],
+    "tags": ["place_value", "fill_in_the_blank", "decimals"]
+  },
+  {
+    "type": "TypingGameData",
+    "id": "typing.6",
+    "displayedProblem": "0.294",
+    "multiAcceptedAnswers": ["two hundred and ninety four thousandths", "zero and two hundred and ninety four thousandths"],
+    "writtenPrompt": "Type this number in written form.",
+    "skills": ["written_three_number_places", "written_form"],
+    "tags": ["decimals", "typing", "written_expression"]
+  },
+  {
+    "type": "TypingGameData",
+    "id": "typing.7",
+    "displayedProblem": "1/4 + 1/2 = 3/4",
+    "multiAcceptedAnswers": ["one fourth plus one half is three fourths"],
+    "writtenPrompt": "Type out the expression in written form",
+    "skills": ["fractions", "written_form"],
+    "tags": ["fractions", "typing", "written_expression"]
+  },
+  {
+    "type": "ReadAloudGameData",
+    "id": "reading.3",
+    "displayedProblem": "Seven china-doll painters each painted 2 eyes on each of 22 doll faces a day. How many eyes in all did they paint in one day?",
+    "additionalInstructions": "Only say the answer, do not repeat the expression.",
+    "multiAcceptedAnswers": ["three hundred and eight", "three hundred eight", "308"],
+    "skills": ["two_place_multiplication", "self-spoken_written_form"],
+    "tags": ["multiplication", "spoken_response", "word_problem"]
+  },
+  {
+    "type": "ReadAloudGameData",
+    "id": "reading.4",
+    "displayedProblem": "There are 36,200 pencils on each of 4 shelves at the office supply manufacturer's warehouse. How many pencils are there altogether?",
+    "writtenPrompt": "What is the product of the following expression?",
+    "additionalInstructions": "Only say the answer, do not repeat the expression.",
+    "multiAcceptedAnswers": [
+      "one hundred and forty four thousand eight hundred",
+      "144800",
+      "one hundred and forty four thousand and eight hundred",
+      "one hundred forty four thousand eight hundred"
+    ],
+    "skills": ["three_or_more_place_multiplication", "self-spoken_written_form"],
+    "tags": ["multiplication", "spoken_response", "large_numbers"]
+  },
+  {
+    "type": "ReadAloudGameData",
+    "id": "reading.5",
+    "displayedProblem": "Gerald started a new collection with 325 bottle caps. He collects 158 more caps in September and 217 more in October. How many bottle caps did he have at the end of October?",
+    "multiAcceptedAnswers": ["seven hundred"],
+    "writtenPrompt": "Answer the short-response question.",
+    "skills": ["three_place_addition", "self-spoken_written_form"],
+    "tags": ["addition", "spoken_response", "word_problem"]
+  },
+  {
+    "type": "PlaybackGameData",
+    "id": "playback.6",
+    "webAudioLink": "",
+    "multiAcceptedAnswers": ["seven"],
+    "optionList": ["ten", "eight", "five", "three", "six", "one", "seven", "nine"],
+    "writtenPrompt": "Listen to the audio and then create your response with the choices below. A 'mobile' is a decorative structure that spins freely in the air",
+    "audioTranscript": "Art wants to display 35 of his origami figures by hanging an equal number on each of 5 mobiles. How many figures will Art hang from each mobile?",
+    "skills": ["spoken_written_form", "single_digit_division"],
+    "tags": ["division", "audio", "spoken_response"]
+  },
+  {
+    "type": "PlaybackGameData",
+    "id": "playback.7",
+    "webAudioLink": "/audio/level_up_3h.mp3",
+    "multiAcceptedAnswers": ["She is forty years-old"],
+    "optionList": ["She", "eight", "five", "forty", "thirty-two", "is", "forty-eight", "years-old"],
+    "writtenPrompt": "Listen to the audio and then create your response with the choices below",
+    "audioTranscript": "If Sally's mother is 8 times older than her, and Sally is 5 years-old, how old is Sally's mother?",
+    "skills": ["spoken_written_form", "single_digit_multiplication"],
+    "tags": ["multiplication", "audio", "spoken_response"]
+  },
+  {
+    "type": "PlaybackGameData",
+    "id": "playback.8",
+    "webAudioLink": "/audio/level_up_3h.mp3",
+    "multiAcceptedAnswers": ["fourteen"],
+    "optionList": ["fifteen", "eleven", "seventeen", "fourteen", "twenty", "twelve", "thirteen", "sixteen"],
+    "writtenPrompt": "Listen to the audio and then create your response with the choices below",
+    "audioTranscript": "Dancers are placed in groups of 4 for a square dance. There are 56 dancers. How many groups of 4 can be made?",
+    "skills": ["spoken_written_form", "single_digit_division"],
+    "tags": ["division", "audio", "spoken_response"]
+  },
+  {
+    "type": "ReadAloudGameData",
+    "id": "reading.6",
+    "displayedProblem": "Laura addresses 127 envelopes every week. Each envelope contains 4 pieces of paper. How many envelopes does Laura address in one year? (There are 52 weeks in a year)",
+    "writtenPrompt": "What is the product of the following expression?",
+    "additionalInstructions": "Only say the product, do not repeat the expression.",
+    "multiAcceptedAnswers": ["six thousand six hundred and four", "6604", "six thousand six hundred four"],
+    "skills": ["three_or_more_place_multiplication", "self-spoken_written_form"],
+    "tags": ["multiplication", "spoken_response", "large_numbers"]
+  },
+  {
+    "type": "ReadAloudGameData",
+    "id": "reading.7",
+    "displayedProblem": "21 x 11 = ??",
+    "writtenPrompt": "What is the product of the following expression?",
+    "additionalInstructions": "Only say the product, do not repeat the expression.",
+    "multiAcceptedAnswers": ["two hundred thirty one", "231"],
+    "skills": ["two_place_multiplication", "self-spoken_written_form"],
+    "tags": ["multiplication", "spoken_response"]
+  },
+  {
+    "type": "TypingGameData",
+    "id": "typing.8",
+    "displayedProblem": "320.5 + 139.1 = 459.6",
+    "multiAcceptedAnswers": ["three hundred twenty and five tenths plus one hundred thirty nine and one tenths"],
+    "writtenPrompt": "Type out the expression in written form",
+    "skills": ["four_or_more_place_addition", "written_form"],
+    "tags": ["addition", "typing", "decimals"]
+  },
+  {
+    "type": "TypingGameData",
+    "id": "typing.9",
+    "displayedProblem": "A piece of fabric is 52 inches long. Sally cuts it into 4 equal pieces to make costumes for puppets. Each piece is 13 inches long.",
+    "multiAcceptedAnswers": [
+      "fifty two divided by four is thirteen",
+      "fifty two over four is thirteen",
+      "fifty two divided by four equals thirteen",
+      "fifty two over four equals thirteen"
+    ],
+    "writtenPrompt": "Write the number sentence (or expression) representing this problem using division in written form.",
+    "skills": ["two_place_division", "written_form", "number_sentences"],
+    "tags": ["division", "typing", "word_problem"]
+  }
+]

@@ -11,5 +11,8 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Ensure question banks are loaded before starting the app
+  await gameDataBank.initBanks();
+
   runApp(const HomeApp());
 }

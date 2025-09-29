@@ -1,7 +1,66 @@
 import 'dart:math';
+import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:onwards/pages/activities/game_series.dart';
 import 'package:onwards/pages/home.dart';
+
+// Helper: normalize various Firestore shapes for accepted answers into
+// the shapes the app expects.
+List<List<String>> _normalizeNestedAnswers(dynamic value) {
+  if (value == null) return <List<String>>[];
+
+  // If it's already a string, try to parse it as JSON (e.g. '["a","b"]' or
+  // '[ ["a","b"] ]'). If that fails, fall back to tokenizing by whitespace.
+  if (value is String) {
+    try {
+      final decoded = jsonDecode(value);
+      // If decoded is iterable, run normalization again on that structure
+      if (decoded is Iterable) {
+        return _normalizeNestedAnswers(decoded);
+      }
+    } catch (_) {
+      // ignore JSON errors and fall through to whitespace tokenization
+    }
+    return [value.split(RegExp(r"\s+"))];
+  }
+
+  if (value is Iterable) {
+    final list = value.toList();
+    if (list.isEmpty) return <List<String>>[];
+
+    // If the first element is a String, assume this is a List<String>
+    if (list.first is String) {
+      // If the list elements are strings, assume each element represents a
+      // single token (which may itself contain spaces in some datasets). We
+      // keep each element as-is rather than splitting further.
+      return list.map<List<String>>((e) => [e.toString()]).toList();
+    }
+
+    // Otherwise assume it's an iterable of iterables and convert each to List<String>
+    return list
+        .map<List<String>>((e) => (e is Iterable)
+            ? e.map((x) => x.toString()).toList()
+            : [e.toString()])
+        .toList();
+  }
+
+  // Fallback: convert to single tokenized string
+  return [value.toString().split(RegExp(r"\s+"))];
+}
+
+List<String> _normalizeToStringList(dynamic value) {
+  if (value == null) return <String>[];
+  if (value is String) {
+    try {
+      final decoded = jsonDecode(value);
+      if (decoded is Iterable) return decoded.map((e) => e.toString()).toList();
+    } catch (_) {}
+    return [value];
+  }
+  if (value is Iterable) return value.map((e) => e.toString()).toList();
+  return [value.toString()];
+}
 
 /// Fill in the blank needs the question to show with blanks, 
 /// the arithmitic form, and the answer blocks
@@ -9,12 +68,23 @@ class GameData {
   const GameData({
     required this.id,
     required this.skills,
-    required this.score
+    required this.score,
+    this.tags = const []
   });
 
   final int score;
   final String id;
   final List<String> skills;
+  final List<String> tags;
+
+  // Factory constructor to create GameData from Firestore document
+  factory GameData.fromFirestore(Map<String, dynamic> doc) {
+    return GameData(
+      id: doc['id'] as String,
+      score: doc['score'] as int,
+  skills: List<String>.from(doc['skills'] ?? []),
+    );
+  }
 }
 
 // Unique ID for each question; Should be meaningful
@@ -29,6 +99,20 @@ class PlaybackGameData extends GameData {
     required super.skills,
     super.score = 25
   });
+  
+  /// Factory to create PlaybackGameData from Firestore
+  factory PlaybackGameData.fromFirestore(Map<String, dynamic> doc) {
+    return PlaybackGameData(
+      id: doc['id'] as String? ?? 'playback',
+      score: doc['score'] as int? ?? 25,
+  skills: List<String>.from(doc['skills'] ?? []),
+      webAudioLink: doc['webAudioLink'] as String? ?? '',
+      multiAcceptedAnswers: _normalizeNestedAnswers(doc['multiAcceptedAnswers']),
+      writtenPrompt: doc['writtenPrompt'] as String? ?? '',
+      audioTranscript: doc['audioTranscript'] as String? ?? '',
+      optionList: List<String>.from(doc['optionList'] ?? []),
+    );
+  }
   
   final String webAudioLink;
   final List<List<String>> multiAcceptedAnswers;
@@ -49,7 +133,8 @@ class JumbleGameData extends GameData {
     required this.optionList,
     super.id = "jumble", 
     required super.skills,
-    super.score = 10
+    super.score = 10,
+    super.tags = const []
   });
   
   /// The actual problem shown under the written prompt. This can be arithmitic or a word problem
@@ -65,6 +150,22 @@ class JumbleGameData extends GameData {
   int getMinSelection() {
     return multiAcceptedAnswers[0].length;
   }
+
+    /// Factory to create JumbleGameData from Firestore
+  factory JumbleGameData.fromFirestore(Map<String, dynamic> doc) {
+    return JumbleGameData(
+      id: doc['id'] as String? ?? 'jumble',
+      score: doc['score'] as int? ?? 10,
+      skills: List<String>.from(doc['skills'] ?? []),
+      tags: List<String>.from(doc['tags'] ?? []),
+      displayedProblem: doc['displayedProblem'] as String,
+      multiAcceptedAnswers:
+          _normalizeNestedAnswers(doc['multiAcceptedAnswers']),
+      writtenPrompt: doc['writtenPrompt'] as String? ??
+          "Use the buttons below to answer the prompt",
+      optionList: List<String>.from(doc['optionList'] ?? []),
+    );
+  }
 }
 
 class ReadAloudGameData extends GameData {
@@ -76,7 +177,8 @@ class ReadAloudGameData extends GameData {
     this.useNumWordProtocol = true,
     super.id = "reading",
     required super.skills,
-    super.score = 30
+    super.score = 30,
+    super.tags = const []
   });
   
   /// The actual problem shown under the written prompt. This can be arithmitic or a word problem
@@ -88,6 +190,22 @@ class ReadAloudGameData extends GameData {
   final String writtenPrompt;
   final String addtionalInstructions;
   final bool useNumWordProtocol;
+
+  factory ReadAloudGameData.fromFirestore(Map<String, dynamic> doc) {
+    return ReadAloudGameData(
+      id: doc['id'] as String? ?? 'reading',
+      score: doc['score'] as int? ?? 30,
+      skills: List<String>.from(doc['skills'] ?? []),
+      tags: List<String>.from(doc['tags'] ?? []),
+      displayedProblem: doc['displayedProblem'] as String,
+      multiAcceptedAnswers: _normalizeNestedAnswers(doc['multiAcceptedAnswers']),
+      writtenPrompt: doc['writtenPrompt'] as String? ??
+          "Answer the question by speaking into to the microphone.",
+      addtionalInstructions: doc['addtionalInstructions'] as String? ??
+          "Your speech will be turned into numbers. Make sure you have microphone access enabled.",
+      useNumWordProtocol: doc['useNumWordProtocol'] as bool? ?? true,
+    );
+  }
 }
 
 class TypingGameData extends GameData {
@@ -97,12 +215,26 @@ class TypingGameData extends GameData {
     this.writtenPrompt = "Write the expression in written form (do not use special characters)",
     super.id = "typing",
     required super.skills,
-    super.score = 20
+    super.score = 20,
+    super.tags = const []
   });
   
   final String displayedProblem;
   final List<String> multiAcceptedAnswers;
   final String writtenPrompt;
+
+  factory TypingGameData.fromFirestore(Map<String, dynamic> doc) {
+    return TypingGameData(
+      id: doc['id'] as String? ?? 'typing',
+      score: doc['score'] as int? ?? 20,
+      skills: List<String>.from(doc['skills'] ?? []),
+      tags: List<String>.from(doc['tags'] ?? []),
+      displayedProblem: doc['displayedProblem'] as String,
+      multiAcceptedAnswers: _normalizeToStringList(doc['multiAcceptedAnswers']),
+      writtenPrompt: doc['writtenPrompt'] as String? ??
+          "Write the expression in written form (do not use special characters)",
+    );
+  }
 }
 
 class FillBlanksGameData extends GameData{
@@ -114,7 +246,8 @@ class FillBlanksGameData extends GameData{
     required this.optionList,
     super.id = "fill",
     required super.skills,
-    super.score = 15
+    super.score = 15,
+    super.tags = const []
   });
   
   final String displayedProblem;
@@ -125,6 +258,19 @@ class FillBlanksGameData extends GameData{
 
   int getMinSelection() {
     return multiAcceptedAnswers.length;
+  }
+  factory FillBlanksGameData.fromFirestore(Map<String, dynamic> doc) {
+    return FillBlanksGameData(
+      id: doc['id'] as String? ?? 'fill',
+      score: doc['score'] as int? ?? 15,
+      skills: List<String>.from(doc['skills'] ?? []),
+      tags: List<String>.from(doc['tags'] ?? []),
+      displayedProblem: doc['displayedProblem'] as String,
+      multiAcceptedAnswers: _normalizeToStringList(doc['multiAcceptedAnswers']),
+      writtenPrompt: doc['writtenPrompt'] as String,
+      blankForm: doc['blankForm'] as String,
+      optionList: List<String>.from(doc['optionList'] ?? []),
+    );
   }
 }
 
@@ -146,7 +292,7 @@ class GameDataBank {
 
   GameDataBank();
 
-  void initBanks() {
+  Future<void> initBanks() async {
     // check if the banks already have data
     jumbleBank.clear();
     playbackBank.clear();
@@ -158,14 +304,17 @@ class GameDataBank {
     intermediateModeBank.clear();
     hardModeBank.clear();
 
+    // init local banks 
     initJumbleBank();
     initPlaybackBank();
     initReadingBank();
     initTypingBank();
     initFillBlanksBank();
-    initEasyModeBank();
-    initHardModeBank();
-    initIntermediateModeBank();
+
+  // init Firestore banks (await so callers receive fully populated banks)
+  await initEasyModeBank();
+  await initHardModeBank();
+  await initIntermediateModeBank();
     logger.i("Iniitalized the game questions from the disk");
 
     // shuffle bank; Note: Getter for these types are randomized too
@@ -740,134 +889,65 @@ class GameDataBank {
     );
   }
 
-  void initEasyModeBank() {
-    easyModeBank.addAll(
-      [
-        const JumbleGameData(
-          displayedProblem: 'Sally is 5 years old. Her mother 8 times as old as Sally is. How old is her mother?', 
-          multiAcceptedAnswers: [
-            ["She", "is", "forty", "years-old"]
-          ],
-          writtenPrompt: 'Answer the short-response question using the blocks below.',
-          optionList: [
-            "She", "eight", "five", "forty", "thrity-two", "is", "forty-eight", "years-old"
-          ],
-          id: "jumble.1",
-          skills: ["single_digit_addition", "word_problem_written_form"],
-        ),
-        const JumbleGameData(
-          displayedProblem: 'Franklin has a set of building blocks with 176 pieces. He received 2 more sets as gifts. One has 95 pieces; the other has 160 pieces. How many building blocks does Franklin have all together?', 
-          multiAcceptedAnswers: [
-            ["Franklin", "has", "four hundred and thirty one", "blocks"]
-          ],
-          writtenPrompt: 'Answer the short-response question using the blocks below.',
-          optionList: [
-            "blocks", "four hundred and thirty one", "Franklin", "fourty-three and one", "has", "four thirty one", 
-          ],
-          id: "jumble.2",
-          skills: ["word_problem_written_form", "three_place_addition"]
-        ),
-        
-        const JumbleGameData(
-          displayedProblem: '4153 + 3567 = 7720', 
-          multiAcceptedAnswers: [
-            ['four thousand one hundred and fifty three', "plus", 'three thousand five hundred and sixty seven', 'equals', 'seven thousand seven hundred and twenty'], 
-            ['four thousand one hundred and fifty three', "plus", 'three thousand five hundred and sixty seven', 'is', 'seven thousand seven hundred and twenty']
-          ],
-          optionList: ['four thousand one hundred and fifty three', "minus", 'fourty one hundred and fifty three', 'thirty five hundred and sixty seven',
-          'three thousand five hundred and sixty seven', 'plus', 'seventy seven hundred and twenty', 'seven thousand seven hundred and twenty', 'equals'],
-          id: "jumble.4",
-          skills: ["written_four_place_number_values"]
-        ),
-        const PlaybackGameData(
-          webAudioLink: '', 
-          multiAcceptedAnswers: [
-            ["six"]
-          ],
-          optionList: [
-            "seven", "eight", "five", "three", "six", "one", "nine"
-          ],
-          writtenPrompt: "Listen to the audio and then create your response with the choices below. Only submit the number.", 
-          audioTranscript: 'Five times what number results in thrity?',
-          skills: ["single_digit_addition", "spoken_written_form"],
-          id: "playback.1"
-        ),
-        const PlaybackGameData(
-          webAudioLink: '', 
-          multiAcceptedAnswers: [
-            ["eight"]
-          ],
-          optionList: [
-            "ten", "eight", "five", "three", "six", "one", "eight", "nine"
-          ],
-          writtenPrompt: "Listen to the audio and then create your response with the choices below.", 
-          audioTranscript: 'Jack has 40 trading cards that he would like to give to his 5 friends. If he shares them equally, how many cards will he give to each?',
-          skills: ["spoken_written_form", "single_digit_division"],
-          id: "playback.2"
-        ),
-        const TypingGameData(
-          displayedProblem: '4153 + 3567 = 7720', 
-          multiAcceptedAnswers: ["four thousand one hundred and fifty three plus three thousand five hundred and sixty seven equals seven thousand seven hundred and twenty",
-          "four thousand one hundred and fifty three plus three thousand five hundred and sixty seven is seven thousand seven hundred and twenty"],
-          skills: ["four_or_more_place_addition", "written_form"],
-          id: "typing.1"
-        ),
-        const TypingGameData(
-          displayedProblem: 'Patrick has filled 1,485 of 3,000 baseball cards. How many cards are left to be filled?', 
-          multiAcceptedAnswers: ["one thousand five hundred and fifteen", "one thousand five hundred fifteen"],
-          writtenPrompt: "Type the remaining card amount in standard written form.",
-          skills: ["four_or_more_place_addition", "written_form"],
-          id: "typing.2"
-        ),
-        const FillBlanksGameData(
-          displayedProblem: 'Archery Team A hit the target 367 times. Team B hit the target 412 times. How many times did they hit the target?', 
-          multiAcceptedAnswers: ["seven hundred and seventy nine"], 
-          writtenPrompt: 'Use the options below to answer the word problem.', 
-          blankForm: "The teams hit the target ____ times", 
-          optionList: [
-            "eight hundred", "twenty one", "seven hundred and seventy nine", "four hundred and tweleve", "three hundred and sixty seven"
-          ],
-          skills: ["three_place_addition", "written_form"],
-          id: "fill.2"
-        ),
-        const FillBlanksGameData(
-          displayedProblem: 'Murphy has an article with 72,885 words and an article with 59,993 words. How many more words does the longer article have?', 
-          multiAcceptedAnswers: ["tweleve thousand eight hundred and ninety two"], 
-          writtenPrompt: 'Use the options below to answer the word problem.', 
-          blankForm: "The longer article has ____ more words than the shorter one.", 
-          optionList: [
-            "seventy two thousand eight hundred and eighty five", "tweleve thousand eight hundred and ninety two", "fifty nine thousand nine hundred and ninrty three", "one hundred two thousand eight hundred and ninety two", "five hundred thousand nine thousand nine hundred and ninety three"
-          ],
-          skills: ["four_or_more_place_addition", "written_form"],
-          id: "fill.3"
-        ),
-        const JumbleGameData(
-          displayedProblem: '158 + 217 + 325 = 700', 
-          multiAcceptedAnswers: [
-            ['one hundred and fifty eight', "plus", 'two hundred and seventeen', 'plus ', 'three hundred and twenty five', 'equals', 'seven hundred'],
-            ['one hundred and fifty eight', "plus ", 'two hundred and seventeen', 'plus', 'three hundred and twenty five', 'equals', 'seven hundred']
-          ],
-          optionList: ['one hundred and fifty eight', "plus ", 'twenty one and seven', 'thirty five hundred and sixty seven',
-          'three hundred and twenty five', 'plus', 'seven hundred', 'two hundred and seventeen', 'equals'],
-          id: "jumble.6",
-          skills: ["written_three_place_number_values, multiple_operations"]
-        ),
-        const JumbleGameData(
-          displayedProblem: '176 + 95 + 160 = 431', 
-          multiAcceptedAnswers: [
-            ['one hundred and seventy six', "plus", 'ninety five', 'plus ', 'one hundred and sixty', 'equals', 'four hundred and thirty one'],
-            ['one hundred and seventy six', "plus ", 'ninety five', 'plus', 'one hundred and sixty', 'equals', 'four hundred and thirty one']
-          ],
-          optionList: ['ninety five', "plus ", 'four hundred and thirty one', 'seventeen and six',
-          'one hundred and seventy six', 'plus', 'four thrity one', 'one hundred and sixty', 'equals'],
-          id: "jumble.7",
-          skills: ["written_two_place_number_values, multiple_operations"]
-        ),
-      ]
-    );
-  }
+  Future<void> initEasyModeBank() async {
+  print("Initializing easy mode question bank from Firestore...");
+  DocumentReference easyBankDoc = FirebaseFirestore.instance
+      .collection("questionBank")
+      .doc("easyBank");
 
-  void initIntermediateModeBank() {
+  DocumentSnapshot snapshot = await easyBankDoc.get();
+
+  if (snapshot.exists) {
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    List<dynamic> questions = data['questions'];
+    print("Fetched ${questions.length} questions from Firestore");
+
+    for (int i = 0; i < questions.length; i++) {
+      var q = questions[i];
+      try {
+        // Determine question type by id prefix when available
+        String id = (q is Map && q['id'] is String) ? q['id'] as String : '';
+
+        if (id.startsWith('jumble')) {
+          easyModeBank.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('playback')) {
+          easyModeBank.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('reading')) {
+          easyModeBank.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('typing')) {
+          easyModeBank.add(TypingGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('fill')) {
+          easyModeBank.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else {
+          // Fallback heuristics based on keys
+          if (q is Map<String, dynamic> && q.containsKey('webAudioLink')) {
+            easyModeBank.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          } else if (q is Map<String, dynamic> && q.containsKey('blankForm')) {
+            easyModeBank.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          } else if (q is Map<String, dynamic> && q.containsKey('displayedProblem') && q.containsKey('optionList')) {
+            // assume jumble-like
+            easyModeBank.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          } else if (q is Map<String, dynamic> && q.containsKey('displayedProblem') && q.containsKey('multiAcceptedAnswers')) {
+            // default to ReadAloud if unsure
+            easyModeBank.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          } else {
+            print('Skipping unknown question format at index $i: $q');
+          }
+        }
+      } catch (e, st) {
+        // Log and continue so one malformed entry doesn't stop loading
+        print('Failed to load question at index $i: $e');
+        print(q);
+        print(st);
+        continue;
+      }
+    }
+
+    print("Loaded ${easyModeBank.length} easy questions");
+  }
+}
+
+  Future<void> initIntermediateModeBank() async {
     intermediateModeBank.addAll(
       [
         const JumbleGameData(
@@ -1013,7 +1093,7 @@ class GameDataBank {
     );
   }
 
-  void initHardModeBank() {
+  Future<void> initHardModeBank() async {
     hardModeBank.addAll(
       [
         const FillBlanksGameData(

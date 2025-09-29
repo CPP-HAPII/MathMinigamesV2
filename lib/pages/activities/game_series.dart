@@ -181,7 +181,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
 
     setState(() {
       int updatedScore = shouldReplace ? cachedScore : cachedHighScore;
-      gameScore = prefs.setInt('highcore', updatedScore).then((_) {
+      gameScore = prefs.setInt('highscore', updatedScore).then((_) {
         logger.d('Updating highscore...');
         return updatedScore;
       });
