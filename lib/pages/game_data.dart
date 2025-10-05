@@ -5,11 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:onwards/pages/activities/game_series.dart';
 import 'package:onwards/pages/home.dart';
 
-// Helper: normalize various Firestore shapes for accepted answers into
-// the shapes the app expects.
+// Helper: normalize various Firestore shapes for accepted answers 
 List<List<String>> _normalizeNestedAnswers(dynamic value) {
   if (value == null) return <List<String>>[];
-
   // If it's already a string, try to parse it as JSON (e.g. '["a","b"]' or
   // '[ ["a","b"] ]'). If that fails, fall back to tokenizing by whitespace.
   if (value is String) {
@@ -29,12 +27,20 @@ List<List<String>> _normalizeNestedAnswers(dynamic value) {
     final list = value.toList();
     if (list.isEmpty) return <List<String>>[];
 
-    // If the first element is a String, assume this is a List<String>
+    // - If any element contains whitespace, assume each element is a full
+    //   accepted-answer phrase -> tokenize each element into a List<String>.
+    // - Otherwise (all elements are single tokens) assume the whole list
+    //   represents one accepted answer (i.e. tokens in order) and wrap it.
     if (list.first is String) {
-      // If the list elements are strings, assume each element represents a
-      // single token (which may itself contain spaces in some datasets). We
-      // keep each element as-is rather than splitting further.
-      return list.map<List<String>>((e) => [e.toString()]).toList();
+      final asStrings = list.map((e) => e.toString()).toList();
+      final anyHasSpace = asStrings.any((s) => s.trim().contains(RegExp(r"\s+")));
+      if (anyHasSpace) {
+        // Each element is a phrase; split each into tokens
+        return asStrings.map<List<String>>((s) => s.split(RegExp(r"\s+"))).toList();
+      } else {
+        // Treat the entire list as tokens for one accepted answer
+        return [asStrings];
+      }
     }
 
     // Otherwise assume it's an iterable of iterables and convert each to List<String>
@@ -63,7 +69,6 @@ List<String> _normalizeToStringList(dynamic value) {
 }
 
 /// Fill in the blank needs the question to show with blanks, 
-/// the arithmitic form, and the answer blocks
 class GameData {
   const GameData({
     required this.id,
@@ -87,7 +92,6 @@ class GameData {
   }
 }
 
-// Unique ID for each question; Should be meaningful
 class PlaybackGameData extends GameData {
   const PlaybackGameData({
     required this.webAudioLink,
@@ -139,8 +143,7 @@ class JumbleGameData extends GameData {
   
   /// The actual problem shown under the written prompt. This can be arithmitic or a word problem
   final String displayedProblem;
-  /// A list of string lists that represent the multiple combinations of words from the options lists that are correct
-  /// for this problem
+  /// A list of string lists that represent the multiple combinations of words from the options lists 
   final List<List<String>> multiAcceptedAnswers;
   /// The title prompt for the Jumble game. Use this to provide unique instructions for this problem. Optional.
   final String writtenPrompt;
@@ -183,8 +186,7 @@ class ReadAloudGameData extends GameData {
   
   /// The actual problem shown under the written prompt. This can be arithmitic or a word problem
   final String displayedProblem;
-  /// A list of string lists that represent the multiple combinations of words from the options lists that are correct
-  /// for this problem
+  /// A list of string lists that represent the multiple combinations of words from the options lists 
   final List<List<String>> multiAcceptedAnswers;
   /// The title prompt for the Jumble game. Use this to provide unique instructions for this problem. Optional.
   final String writtenPrompt;
@@ -893,7 +895,7 @@ class GameDataBank {
   print("Initializing easy mode question bank from Firestore...");
   DocumentReference easyBankDoc = FirebaseFirestore.instance
       .collection("questionBank")
-      .doc("easyBank");
+      .doc("questionDoc");
 
   DocumentSnapshot snapshot = await easyBankDoc.get();
 

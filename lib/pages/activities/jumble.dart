@@ -142,41 +142,73 @@ class GameFormState extends GamePageState<GameForm> {
   /// Validate the current selection against the multiple answers. 
   /// If the value is -1, the answer is correct. If the answer is 0, not enough answers were selected. If the answer is greater than 0, then there is an error somewhere
   int validateAnswer() {
-    int errorIndex = -1;
-    bool isCorrect = true;
-    bool isMultipleCorrect = true;
-    if (currentCount >= maxSelection) {
-      // go thru all the answers in the multiAcceptedAnswers
-      for (List<String> answerList in widget.answers) {
-        logger.d("Checking a list of answers: ${widget.answers.length}");
-        // go thru the answer elements in the current list
-        for (int i = 0; i < answerList.length; i++) {
-          isCorrect = true;
-          // If the current answer does not match the one from the list, save the location and mark the flag
-          if (_selectedAnswers[i] != answerList[i]) {
-            logger.d("Validating Answer: Expected ${answerList[i]} at Position: $i but got ${_selectedAnswers[i]}");
-            isCorrect = false;
-            errorIndex = i;
-          }
-        }
+    // Helper to normalize strings for comparison: lowercase, drop punctuation,
+    // collapse whitespace, and remove the word 'and' (common in written numbers).
+    String _normalizeComparisonString(String s) {
+      var out = s.toLowerCase();
+      // remove punctuation except hyphens (we'll keep hyphens)
+      out = out.replaceAll(RegExp(r"[^a-z0-9\s\-]"), ' ');
+      // remove the word 'and' which often varies in written numbers
+      out = out.replaceAll(RegExp(r"\band\b"), ' ');
+      out = out.replaceAll(RegExp(r"\s+"), ' ').trim();
+      return out;
+    }
 
-        // when we are done going through one answer, if its correct, just skip checking the rest
-        if (isCorrect) {
-          logger.i("Skipping checking the rest of the multiAcceptedAnswers as one matched already");
-          return -1;
-        } else {
-          logger.d("Match hasn't been found yet, continuing...");
-          isMultipleCorrect = isCorrect; // save last correctness
-        }
-      }
-      
-    } else {
+    // Build normalized joined form for selected answers
+    final joinedSelected = _selectedAnswers.join(' ');
+    final normSelected = _normalizeComparisonString(joinedSelected);
+
+    // If the joined normalized selected string exactly matches any accepted
+    // answer (after normalization), accept it even if the number of selected
+    // buttons is less than the token count expected. This handles cases where
+    // button labels combine multiple tokens (e.g. "four hundred thirty one").
+    for (List<String> answerList in widget.answers) {
+      final joinedAnswer = answerList.join(' ');
+      final normAnswer = _normalizeComparisonString(joinedAnswer);
+      if (normAnswer == normSelected) return -1;
+    }
+
+    // If not enough selections, return 0
+    if (currentCount < maxSelection) {
       logger.d("Not enough answers are selected, could not validate. Expected $maxSelection but got $currentCount");
       return 0;
     }
 
-    logger.d("Returning the answer index");
-    return errorIndex;
+    // Helper to find first mismatch index between two token lists; returns -1 if identical
+    int _firstMismatchIndex(List<String> a, List<String> b) {
+      int minLen = a.length < b.length ? a.length : b.length;
+      for (int i = 0; i < minLen; i++) {
+        if (a[i] != b[i]) return i;
+      }
+      if (a.length != b.length) return minLen;
+      return -1;
+    }
+
+    int bestMismatch = -1;
+
+    // Try each accepted answer
+    for (List<String> answerList in widget.answers) {
+      // 1) Direct token-wise exact match
+      if (answerList.length == _selectedAnswers.length) {
+        bool allMatch = true;
+        for (int i = 0; i < answerList.length; i++) {
+          if (_selectedAnswers[i] != answerList[i]) {
+            allMatch = false;
+            break;
+          }
+        }
+        if (allMatch) return -1;
+      }
+
+      // If not matched token-wise, compute mismatch index for helpful feedback
+      final mismatch = _firstMismatchIndex(_selectedAnswers, answerList);
+      if (mismatch >= 0) {
+        if (bestMismatch == -1 || mismatch < bestMismatch) bestMismatch = mismatch;
+      }
+    }
+
+    // If no match found, return the best mismatch index (or 1 if none)
+    return bestMismatch >= 0 ? bestMismatch : 1;
   }
 
   void clearAnswers() {
