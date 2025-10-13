@@ -892,23 +892,120 @@ class GameDataBank {
   }
 
   Future<void> initEasyModeBank() async {
-  print("Initializing easy mode question bank from Firestore...");
-  DocumentReference easyBankDoc = FirebaseFirestore.instance
-      .collection("questionBank")
-      .doc("questionDoc");
+    print("Initializing easy mode question bank from Firestore...");
+    DocumentReference gameDataQuestions = FirebaseFirestore.instance
+        .collection("gameData")
+        .doc("questions");
 
-  DocumentSnapshot snapshot = await easyBankDoc.get();
+    DocumentSnapshot snapshot = await gameDataQuestions.get();
 
-  if (snapshot.exists) {
-    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-    List<dynamic> questions = data['questions'];
+    DocumentReference  liveTagsDoc = FirebaseFirestore.instance
+        .collection("gameData")
+        .doc("liveTagsDoc");
+
+    DocumentSnapshot liveTagsSnapshot = await liveTagsDoc.get();
+
+    if(!snapshot.exists || !liveTagsSnapshot.exists){
+      print("No questions found in Firestore or liveTagsDoc missing.");
+      return;
+    }
+    Map<String, dynamic> questionsData = snapshot.data() as Map<String, dynamic>;
+    Map<String, dynamic> liveTagsData = liveTagsSnapshot.data() as Map<String, dynamic>;
+
+    List<dynamic> questions = questionsData['questions'];
+    List<dynamic> liveTags = liveTagsData['liveTags'];
+
     print("Fetched ${questions.length} questions from Firestore");
+    print("Fetched ${liveTags.length} live tags");
+
+    // Use lowercase sets so comparisons become case-insensitive
+    final Set<String> allowedDifficulties = {};
+    final Set<String> allowedGameTypes = {};
+    final Set<String> allowedFilters = {};
+
+    for (var tag in liveTags){
+      if (tag is! Map<String, dynamic>) continue;
+      // Difficulty (may be a List)
+      if (tag['difficulty'] is Iterable) {
+        for (var diff in tag['difficulty']) {
+          if (diff != null) allowedDifficulties.add(diff.toString().toLowerCase());
+        }
+      } else if (tag['difficulty'] != null) {
+        allowedDifficulties.add(tag['difficulty'].toString().toLowerCase());
+      }
+
+      // Handle gameType (may be a List)
+      if (tag['gameType'] is Iterable) {
+        for (var gt in tag['gameType']) {
+          if (gt != null) allowedGameTypes.add(gt.toString().toLowerCase());
+        }
+      } else if (tag['gameType'] != null) {
+        allowedGameTypes.add(tag['gameType'].toString().toLowerCase());
+      }
+
+      // Handle filters safely (must be Iterable)
+      if (tag['filters'] is Iterable) {
+        for (var f in tag['filters']) {
+          if (f != null) allowedFilters.add(f.toString().toLowerCase());
+        }
+      }
+    }
+    print("Allowed difficulties: $allowedDifficulties");
+    print("Allowed game types: $allowedGameTypes");
+    print("Allowed filters: $allowedFilters");
 
     for (int i = 0; i < questions.length; i++) {
       var q = questions[i];
       try {
+        if (q is! Map<String, dynamic>) continue;
+        final qDifficulty = q['difficulty'];
+        final qGameType = q['gameType'];
+        final qTags = q['tags'];
+
+        // Local helper: match qValue against allowed set case-insensitively.
+        bool matchesAllowed(dynamic qValue, Set<String> allowed) {
+          if (allowed.isEmpty) return true; // accept any when allowed set is empty
+          if (qValue == null) return false;
+          if (qValue is Iterable) {
+            for (var e in qValue) {
+              if (e != null && allowed.contains(e.toString().toLowerCase())) return true;
+            }
+            return false;
+          }
+          return allowed.contains(qValue.toString().toLowerCase());
+        }
+
+        if (!matchesAllowed(qDifficulty, allowedDifficulties)) {
+          print('Skipping question index $i (id=${q['id'] ?? '<no id>'}) due to difficulty mismatch: $qDifficulty');
+          continue;
+        }
+        if (!matchesAllowed(qGameType, allowedGameTypes)) {
+          continue;
+        }
+
+
+        bool filterMatch = true; // assume true, prove false if any missing
+        if (allowedFilters.isNotEmpty) {
+          if (qTags is List) {
+            for (var requiredFilter in allowedFilters) {
+              // If any required filter is NOT in qTags, mark false and break
+              if (!qTags.contains(requiredFilter)) {
+                filterMatch = false;
+                break;
+              }
+            }
+          } else {
+            // If tags is not a list, just check if that single tag matches all filters (impossible unless 1 filter)
+            filterMatch = allowedFilters.length == 1 && allowedFilters.contains(qTags.toString());
+          }
+        }
+
+        // If filters exist but question doesn’t match them all, skip it
+        if (!filterMatch) continue;
+
+
         // Determine question type by id prefix when available
-        String id = (q is Map && q['id'] is String) ? q['id'] as String : '';
+        String id = (q['id'] is String) ? q['id'] : '';
 
         if (id.startsWith('jumble')) {
           easyModeBank.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
@@ -922,14 +1019,14 @@ class GameDataBank {
           easyModeBank.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
         } else {
           // Fallback heuristics based on keys
-          if (q is Map<String, dynamic> && q.containsKey('webAudioLink')) {
+          if (q.containsKey('webAudioLink')) {
             easyModeBank.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
-          } else if (q is Map<String, dynamic> && q.containsKey('blankForm')) {
+          } else if (q.containsKey('blankForm')) {
             easyModeBank.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
-          } else if (q is Map<String, dynamic> && q.containsKey('displayedProblem') && q.containsKey('optionList')) {
+          } else if (q.containsKey('displayedProblem') && q.containsKey('optionList')) {
             // assume jumble-like
             easyModeBank.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
-          } else if (q is Map<String, dynamic> && q.containsKey('displayedProblem') && q.containsKey('multiAcceptedAnswers')) {
+          } else if (q.containsKey('displayedProblem') && q.containsKey('multiAcceptedAnswers')) {
             // default to ReadAloud if unsure
             easyModeBank.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
           } else {
@@ -947,7 +1044,6 @@ class GameDataBank {
 
     print("Loaded ${easyModeBank.length} easy questions");
   }
-}
 
   Future<void> initIntermediateModeBank() async {
     intermediateModeBank.addAll(
