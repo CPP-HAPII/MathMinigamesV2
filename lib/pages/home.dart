@@ -17,6 +17,8 @@ const homeWidth = 1400.0;
 const desktopMargin = 8.0;
 
 GameDataBank gameDataBank = GameDataBank();
+SequenceFiltersBank sequenceFiltersBank = SequenceFiltersBank();
+
 HashMap<String, String> skillMap = HashMap();
 
 // Image is currently 4:3 ratio
@@ -89,7 +91,7 @@ class HomePageState extends State<HomePage> {
   final Future<SharedPreferencesWithCache> _prefs =
     SharedPreferencesWithCache.create(
       cacheOptions: const SharedPreferencesWithCacheOptions(
-        allowList: <String>{'theme_id', 'correct', 'missed', 'mastered_topics', 'weak_topics', 'score'}
+        allowList: <String>{'theme_id', 'sequence_id', 'correct', 'missed', 'mastered_topics', 'weak_topics', 'score'}
       )
     );
 
@@ -99,11 +101,13 @@ class HomePageState extends State<HomePage> {
   late Future<List<String>> masteredTopicList;
   late Future<List<String>> weakTopicList;
   late Future<int> score;
+  late Future<int> sequenceId;
+
+  SequenceData? currentSequence;
 
   final maxThemes = 6;
 
   ColorProfile currentProfile = lightFlavor;
-
   Future<void> loadTheme() async {
     final SharedPreferencesWithCache prefs = await _prefs;
     int? themeIndex = (prefs.getInt('theme_id') ?? 0);
@@ -112,6 +116,34 @@ class HomePageState extends State<HomePage> {
       currentProfile = _getProfileByIndex(themeIndex);
     });
   }
+
+  Future<int> _loadSequenceIndex() async {
+    final prefs = await _prefs;
+    int index = prefs.getInt('sequence_id') ?? 0;
+    if (sequenceFiltersBank.sequenceBank.isNotEmpty) {
+      currentSequence = sequenceFiltersBank.sequenceBank[index];
+    }
+    return index;
+  }
+
+  Future<void> _setSequenceCounter(int index) async {
+    final SharedPreferencesWithCache prefs = await _prefs;
+
+    setState(() {
+      sequenceId = prefs.setInt('sequence_id', index).then((_) {
+        logger.i('Updating sequence...');
+        currentSequence = sequenceFiltersBank.sequenceBank[index];
+        return index;
+      });
+    });
+  }
+
+  Future<SequenceData> getCurrrentSequence(Future<int> sequenceId) async {
+    final SharedPreferencesWithCache prefs = await _prefs;
+    int index = (prefs.getInt('sequence_id') ?? 0);
+    return sequenceFiltersBank.sequenceBank[index];
+  } 
+
 
   ColorProfile _getProfileByIndex(int index) {
     switch(index) {
@@ -219,6 +251,7 @@ class HomePageState extends State<HomePage> {
     weakTopicList = _prefs.then((SharedPreferencesWithCache prefs) {
       return prefs.getStringList('weak_topics') ?? <String>[];
     });
+    sequenceId = _loadSequenceIndex();
 
     loadTheme();
   }
@@ -237,6 +270,7 @@ class HomePageState extends State<HomePage> {
         subtitle: "Light and simple questions",
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
+        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage(
@@ -249,6 +283,7 @@ class HomePageState extends State<HomePage> {
         subtitle: "More challenging than easy mode",
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
+        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage('assets/images/hard_mode.png'),
@@ -262,6 +297,7 @@ class HomePageState extends State<HomePage> {
         subtitle: "Listening and Speaking may be required",
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
+        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage(
@@ -274,6 +310,7 @@ class HomePageState extends State<HomePage> {
         subtitle: "Try on any of the questions in a random selection",
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
+        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage(
@@ -286,6 +323,7 @@ class HomePageState extends State<HomePage> {
         subtitle: "Dev Only. For testing purposes.",
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
+        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       )
     ];
 
@@ -372,6 +410,85 @@ class HomePageState extends State<HomePage> {
                     child: Icon(Icons.arrow_right, color: currentProfile.textColor),
                   ),
                 )
+              ],
+            ),
+            FutureBuilder<int>(future: sequenceId, // This retrieves the saved index
+              builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+                if (!snapshot.hasData) {
+                  return const CircularProgressIndicator();
+                }
+
+                int currentIndex = snapshot.data!;
+                // Prevent crash if Firestore hasn't loaded sequences yet
+                if (sequenceFiltersBank.sequenceBank.isEmpty) {
+                  return Text("No sequences loaded.", style: TextStyle(color: currentProfile.textColor));
+                }
+
+                // Clamp index within valid range
+                currentIndex = currentIndex.clamp(0, sequenceFiltersBank.sequenceBank.length - 1);
+
+                final currentSequence = sequenceFiltersBank.sequenceBank[currentIndex];
+
+                return Column(
+                  children: [
+                    Text(
+                      "Current Sequence: ${currentSequence.name}",
+                      style: TextStyle(color: currentProfile.textColor),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Difficulty: ${currentSequence.difficulty.join(', ')}",
+                      style: TextStyle(color: currentProfile.textColor),
+                    ),
+                    Text(
+                      "Game Types: ${currentSequence.gameType.join(', ')}",
+                      style: TextStyle(color: currentProfile.textColor),
+                    ),
+                    Text(
+                      "Filters: ${currentSequence.filters.join(', ')}",
+                      style: TextStyle(color: currentProfile.textColor),
+                    ),
+                  ],
+                );
+              },
+            ),
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Tooltip(
+                  message: "Previous Sequence",
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final prefs = await _prefs;
+                      int currentIndex = (prefs.getInt('sequence_id') ?? 0);
+                      if (currentIndex > 0) {
+                        await _setSequenceCounter(currentIndex - 1);
+                      }
+                    },
+                    style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
+                    child: Icon(Icons.arrow_left, color: currentProfile.textColor),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Text(
+                    "Sequence Select",
+                    style: TextStyle(color: currentProfile.textColor),
+                  ),
+                ),
+                Tooltip(
+                  message: "Next Sequence",
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final prefs = await _prefs;
+                      int currentIndex = (prefs.getInt('sequence_id') ?? 0);
+                      if (currentIndex < sequenceFiltersBank.sequenceBank.length - 1) {
+                        await _setSequenceCounter(currentIndex + 1);
+                      }
+                    },
+                    style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
+                    child: Icon(Icons.arrow_right, color: currentProfile.textColor),
+                  ),
+                ),
               ],
             ),
           ],
@@ -645,7 +762,8 @@ class GameCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.styleMode,
-    this.colorProfile = plainFlavor
+    this.colorProfile = plainFlavor,
+    required this.sequenceData,
   });
 
   final Widget gameWidget;
@@ -656,6 +774,7 @@ class GameCard extends StatelessWidget {
   final String subtitle;
   final TextStyle? styleMode;
   final ColorProfile colorProfile;
+  final SequenceData sequenceData;
   
   final desktopMargin = 8.0;
   final minHeight = 240.0;

@@ -25,12 +25,14 @@ class GameTestPage extends StatelessWidget {
   const GameTestPage({
     super.key,
     required this.colorProfile,
-    this.difficultyType = DifficultyType.random
+    this.difficultyType = DifficultyType.random,
+    required this.sequenceData,
   });
 
   final ColorProfile colorProfile;
   final DifficultyType difficultyType;
-
+  final SequenceData sequenceData;
+  // TODO: Maybe addSequenceData sequenceData; to simultar colorProfile being part of the widget.colorProfile
   @override
   Widget build(BuildContext context) {
     logger.i("The number of questions for the games are as follows: Playback: ${gameDataBank.playbackBank.length}, Reading: ${gameDataBank.readingBank.length}, Fill-in-the-Blank: ${gameDataBank.fillBlanksBank.length}, Jumble: ${gameDataBank.jumbleBank.length}, Typing: ${gameDataBank.typingBank.length}");
@@ -75,12 +77,14 @@ class SeriesHomePage extends StatefulWidget {
   final int maxQuestCount;
   final ColorProfile colorProfile;
   final DifficultyType difficultyType;
+  final SequenceData? sequenceData;
 
   const SeriesHomePage({
     super.key, 
     this.maxQuestCount = 10,
     required this.colorProfile,
-    required this.difficultyType
+    required this.difficultyType,
+    this.sequenceData,
   });
   
   @override
@@ -207,8 +211,13 @@ class SeriesHomePageState extends State<SeriesHomePage> {
 
   void selectFixedPages() {
     if (!widget.difficultyType.equals(DifficultyType.random)) {
-      // either easy, medium, hard
-      for (GameData gameData in gameDataBank.getSeriesByDifficulty(widget.difficultyType)) {
+    // Use filtered questions if sequence data is provided, otherwise use series by difficulty.
+    // TODO: If sequence issue add logging here for which sequence is being used
+    final Iterable<GameData> questions = widget.sequenceData != null
+      ? gameDataBank.getFilteredQuestions(widget.sequenceData!)
+      : gameDataBank.getSeriesByDifficulty(widget.difficultyType);
+
+    for (GameData gameData in questions) {
           if (gameData is PlaybackGameData) {
             PlaybackGameData playbackGameData = gameData;
             PlaybackActivityScreen playbackGame = PlaybackActivityScreen.fromLevelSelect(profile: widget.colorProfile, gameData: playbackGameData,);
@@ -378,7 +387,8 @@ class SeriesHomePageState extends State<SeriesHomePage> {
             Align(
                 alignment: Alignment.center,
                 child: Text(
-                  "Click to start the question series. You will navigate through ${gameDataBank.getSeriesByDifficulty(widget.difficultyType).length + 1} questions. You can use the calculator on the top-right of the screen to help you answer the questions.",
+                  // TODO: update to show number of questions in filtered sequence
+                  "Click to start the question series. You will navigate through ${gameDataBank.getSeriesByDifficulty(widget.difficultyType).length} questions. You can use the calculator on the top-right of the screen to help you answer the questions.",
                   style: TextStyle(
                       color: widget.colorProfile.textColor, fontSize: 16),
                 ),

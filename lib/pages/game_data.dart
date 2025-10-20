@@ -68,6 +68,73 @@ List<String> _normalizeToStringList(dynamic value) {
   return [value.toString()];
 }
 
+class SequenceData {
+  const SequenceData({
+    required this.difficulty,
+    required this.filters,
+    required this. gameType,
+    required this.name
+  });
+  final List<String> difficulty;
+  final List<String> filters;
+  final List<String> gameType;
+  final String name;
+  factory SequenceData.fromFirestore(Map<String, dynamic> doc) {
+    return SequenceData(
+      difficulty: List<String>.from(doc['difficulty'] ?? []),
+      filters: List<String>.from(doc['filters'] ?? []),
+      gameType: List<String>.from(doc['gameType'] ?? []),
+      name: doc['name'] as String,
+    );
+  }
+}
+
+class SequenceFiltersBank {
+  List<SequenceData> sequenceBank = [];
+
+  SequenceFiltersBank();
+
+  Future<void> initFiltersBank () async {
+    sequenceBank.clear();
+    await initSequenceBank();
+  }
+
+  Future<void> initSequenceBank() async{
+    logger.i("Initializing sequence question bank from Firestore...");
+    // Reference to `sequenceDoc` in Firestore
+    DocumentSnapshot sequenceSnapshot = await FirebaseFirestore.instance
+        .collection("gameData")
+        .doc("sequenceDoc")
+        .get();
+
+    Map<String, dynamic> sequenceData = sequenceSnapshot.data() as Map<String, dynamic>;
+    List<dynamic> sequences = sequenceData['sequences'];
+    
+    if (sequences.isEmpty) {
+      logger.w("No sequences found inside 'sequences' array.");
+      return;
+    }
+
+    for (int i = 0; i < sequences.length; i++) {
+      var s = sequences[i];
+      try {
+        if (s is! Map<String, dynamic>) {
+          logger.w("Skipping invalid sequence entry at index $i: $s");
+          continue;
+        }
+
+        // Convert to SequenceFiltersData and add to bank
+        sequenceBank.add(
+          SequenceData.fromFirestore(Map<String, dynamic>.from(s)),
+        );
+      } catch (e) {
+        logger.e("Error parsing sequence question at index $i: $e");
+      }
+    }
+  logger.i("Loaded ${sequenceBank.length} sequences into sequenceBank.");
+  }
+}
+
 /// Fill in the blank needs the question to show with blanks, 
 class GameData {
   const GameData({
@@ -292,6 +359,9 @@ class GameDataBank {
   List<GameData> intermediateModeBank = [];
   List<GameData> hardModeBank = [];
 
+  // Firestore bank
+  List<GameData> questionBank = [];
+
   GameDataBank();
 
   Future<void> initBanks() async {
@@ -306,6 +376,8 @@ class GameDataBank {
     intermediateModeBank.clear();
     hardModeBank.clear();
 
+    questionBank.clear();
+
     // init local banks 
     initJumbleBank();
     initPlaybackBank();
@@ -313,11 +385,14 @@ class GameDataBank {
     initTypingBank();
     initFillBlanksBank();
 
-  // init Firestore banks (await so callers receive fully populated banks)
-  await initEasyModeBank();
-  await initHardModeBank();
-  await initIntermediateModeBank();
-    logger.i("Iniitalized the game questions from the disk");
+    // init Firestore banks (await so callers receive fully populated banks)
+    await initQuestionBank();
+    // Future plan : deprecate mode banks and use sequenceBank instead
+    await initEasyModeBank();
+    await initHardModeBank();
+    await initIntermediateModeBank();
+
+    logger.i("Iniitalized the game questions from the database.");
 
     // shuffle bank; Note: Getter for these types are randomized too
     fillBlanksBank.shuffle(random);
@@ -683,7 +758,7 @@ class GameDataBank {
           displayedProblem: "1094 + 4098 = 5192", 
           writtenPrompt: "Read this expression in written form.",
           multiAcceptedAnswers: [["one thousand and ninety four plus four thousand and ninety eight equals five thousand one hundred and ninety two"], ["one thousand ninety four plus four thousand ninety eight equals five thousand one hundred ninety two"]],
-           skills: ["four_or_more_place_addition", "self-spoken_written_form"],
+          skills: ["four_or_more_place_addition", "self-spoken_written_form"],
           id: "reading.9"
           )
       ]
@@ -890,6 +965,48 @@ class GameDataBank {
       ]
     );
   }
+
+
+  Future<void> initQuestionBank() async{
+    DocumentReference gameDataQuestions = FirebaseFirestore.instance
+        .collection("gameData")
+        .doc("questions");
+
+    DocumentSnapshot snapshot = await gameDataQuestions.get();
+
+    if(!snapshot.exists){
+      logger.d("No questions found in Firestore.");
+      return;
+    }
+    Map<String, dynamic> questionsData = snapshot.data() as Map<String, dynamic>;
+    List<dynamic> questions = questionsData['questions'];
+    logger.i("Fetched ${questions.length} questions from Firestore");
+
+    for (int i = 0; i < questions.length; i++) {
+      var q = questions[i];
+      try {
+        if (q is! Map<String, dynamic>) continue;
+        // Determine question type by id prefix when available
+        String id = (q['id'] is String) ? q['id'] : '';
+
+        if (id.startsWith('jumble')) {
+          questionBank.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('playback')) {
+          questionBank.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('reading')) {
+          questionBank.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('typing')) {
+          questionBank.add(TypingGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('fill')) {
+          questionBank.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        }
+      } catch (e) {
+        logger.e("Error processing question at index $i: $e");
+      }
+    }
+    logger.i("Initialized question bank with ${questionBank.length} questions.");
+  }
+
 
   Future<void> initEasyModeBank() async {
     print("Initializing easy mode question bank from Firestore...");
@@ -1408,4 +1525,111 @@ class GameDataBank {
     return hardModeBank;
   }
 
+  List<GameData> getAllQuestions(){
+    if (questionBank.isEmpty) {
+      initQuestionBank();
+    }
+    return questionBank;
+  }
+
+  List<GameData> getFilteredQuestions(SequenceData sequenceData){
+    List<dynamic> questions = getAllQuestions();
+    print("Fetched ${questions.length} questions from Firestore");
+
+    // Use lowercase sets so comparisons become case-insensitive
+    final Set<String> allowedDifficulties = {};
+    final Set<String> allowedGameTypes = {};
+    final Set<String> allowedFilters = {};
+
+    for (int i = 0; i < questions.length; i++) {
+      var q = questions[i];
+      try {
+        if (q is! Map<String, dynamic>) continue;
+        final qDifficulty = q['difficulty'];
+        final qGameType = q['gameType'];
+        final qTags = q['tags'];
+
+        // Local helper: match qValue against allowed set case-insensitively.
+        bool matchesAllowed(dynamic qValue, Set<String> allowed) {
+          if (allowed.isEmpty) return true; // accept any when allowed set is empty
+          if (qValue == null) return false;
+          if (qValue is Iterable) {
+            for (var e in qValue) {
+              if (e != null && allowed.contains(e.toString().toLowerCase())) return true;
+            }
+            return false;
+          }
+          return allowed.contains(qValue.toString().toLowerCase());
+        }
+
+        if (!matchesAllowed(qDifficulty, allowedDifficulties)) {
+          print('Skipping question index $i (id=${q['id'] ?? '<no id>'}) due to difficulty mismatch: $qDifficulty');
+          continue;
+        }
+        if (!matchesAllowed(qGameType, allowedGameTypes)) {
+          continue;
+        }
+
+
+        bool filterMatch = true; // assume true, prove false if any missing
+        if (allowedFilters.isNotEmpty) {
+          if (qTags is List) {
+            for (var requiredFilter in allowedFilters) {
+              // If any required filter is NOT in qTags, mark false and break
+              if (!qTags.contains(requiredFilter)) {
+                filterMatch = false;
+                break;
+              }
+            }
+          } else {
+            // If tags is not a list, just check if that single tag matches all filters (impossible unless 1 filter)
+            filterMatch = allowedFilters.length == 1 && allowedFilters.contains(qTags.toString());
+          }
+        }
+
+        // If filters exist but question doesn’t match them all, skip it
+        if (!filterMatch) continue;
+
+
+        // Determine question type by id prefix when available
+        String id = (q['id'] is String) ? q['id'] : '';
+
+        if (id.startsWith('jumble')) {
+          questionBank.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('playback')) {
+          questionBank.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('reading')) {
+          questionBank.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('typing')) {
+          questionBank.add(TypingGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else if (id.startsWith('fill')) {
+          questionBank.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        } else {
+          // Fallback heuristics based on keys
+          if (q.containsKey('webAudioLink')) {
+            questionBank.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          } else if (q.containsKey('blankForm')) {
+            questionBank.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          } else if (q.containsKey('displayedProblem') && q.containsKey('optionList')) {
+            // assume jumble-like
+            questionBank.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          } else if (q.containsKey('displayedProblem') && q.containsKey('multiAcceptedAnswers')) {
+            // default to ReadAloud if unsure
+            questionBank.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          } else {
+            print('Skipping unknown question format at index $i: $q');
+          }
+        }
+      } catch (e, st) {
+        // Log and continue so one malformed entry doesn't stop loading
+        print('Failed to load question at index $i: $e');
+        print(q);
+        print(st);
+        continue;
+      }
+    }
+
+    print("Loaded ${questionBank.length} easy questions");
+    return questionBank;
+  }
 }

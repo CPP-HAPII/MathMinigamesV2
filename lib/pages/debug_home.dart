@@ -6,6 +6,7 @@ import 'package:onwards/pages/activities/playback/playback.dart';
 import 'package:onwards/pages/activities/reading/reading.dart';
 import 'package:onwards/pages/activities/typing.dart';
 import 'package:onwards/pages/constants.dart';
+import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,7 +22,7 @@ class DebugHomePageState extends State<DebugHomePage> {
   final Future<SharedPreferencesWithCache> _prefs =
     SharedPreferencesWithCache.create(
       cacheOptions: const SharedPreferencesWithCacheOptions(
-        allowList: <String>{'theme_id', 'correct', 'missed', 'mastered_topics', 'weak_topics', 'score'}
+        allowList: <String>{'theme_id', 'sequence_id', 'correct', 'missed', 'mastered_topics', 'weak_topics', 'score'}
       )
     );
 
@@ -31,7 +32,9 @@ class DebugHomePageState extends State<DebugHomePage> {
   late Future<List<String>> masteredTopicList;
   late Future<List<String>> weakTopicList;
   late Future<int> score;
+  late Future<int> sequenceId;
 
+  SequenceData? currentSequence;
   final maxThemes = 6;
 
   ColorProfile currentProfile = lightFlavor;
@@ -44,6 +47,35 @@ class DebugHomePageState extends State<DebugHomePage> {
       currentProfile = _getProfileByIndex(themeIndex);
     });
   }
+
+  
+  Future<int> _loadSequenceIndex() async {
+    final prefs = await _prefs;
+    int index = prefs.getInt('sequence_id') ?? 0;
+    if (sequenceFiltersBank.sequenceBank.isNotEmpty) {
+      currentSequence = sequenceFiltersBank.sequenceBank[index];
+    }
+    return index;
+  }
+
+  Future<void> _setSequenceCounter(int index) async {
+    final SharedPreferencesWithCache prefs = await _prefs;
+
+    setState(() {
+      sequenceId = prefs.setInt('sequence_id', index).then((_) {
+        logger.i('Updating sequence...');
+        currentSequence = sequenceFiltersBank.sequenceBank[index];
+        return index;
+      });
+    });
+  }
+
+  Future<SequenceData> getCurrrentSequence(Future<int> sequenceId) async {
+    final SharedPreferencesWithCache prefs = await _prefs;
+    int index = (prefs.getInt('sequence_id') ?? 0);
+    return sequenceFiltersBank.sequenceBank[index];
+  } 
+
 
   ColorProfile _getProfileByIndex(int index) {
     switch(index) {
@@ -168,6 +200,7 @@ class DebugHomePageState extends State<DebugHomePage> {
         title: "Playback and Choose",
         subtitle: "Difficulty: Hard",
         styleMode: darkStyle,
+        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage(
@@ -179,6 +212,7 @@ class DebugHomePageState extends State<DebugHomePage> {
         title: "Fill in the Blank",
         subtitle: "Difficulty: Easy",
         styleMode: darkStyle,
+        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage('assets/images/jumble-preview.png'),
@@ -188,6 +222,7 @@ class DebugHomePageState extends State<DebugHomePage> {
         title: "Translate Jumble",
         subtitle: "Difficulty: Medium",
         styleMode: darkStyle,
+        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage(
@@ -199,6 +234,7 @@ class DebugHomePageState extends State<DebugHomePage> {
         title: "Read Aloud",
         subtitle: "Difficulty: Challenging",
         styleMode: darkStyle,
+        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage(
@@ -210,6 +246,7 @@ class DebugHomePageState extends State<DebugHomePage> {
         title: "Type it Out",
         subtitle: "Difficulty: Challenging",
         styleMode: darkStyle,
+        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       )
     ];
 
