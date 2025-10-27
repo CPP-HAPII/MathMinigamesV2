@@ -396,7 +396,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
                 child: Text(
                   // TODO: update to show number of questions in filtered sequence
                   // TODO: Update this to follow how game_series is being loaded for the question series
-                  "Click to start the question series. You will navigate through ${gameDataBank.getSeriesByDifficulty(widget.difficultyType).length} questions. You can use the calculator on the top-right of the screen to help you answer the questions.",
+                  "Click to start the question series. You will navigate through ${gameDataBank.getFilteredQuestions(widget.sequenceData!).length} questions. You can use the calculator on the top-right of the screen to help you answer the questions.",
                   style: TextStyle(
                       color: widget.colorProfile.textColor, fontSize: 16),
                 ),

@@ -269,6 +269,7 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     List<Widget> gameCards = <Widget> [
+      // TODO: Add image assets for Play Game mode. Remove other widgets
       GameCard(
         imageAsset: const AssetImage(
           'assets/images/test_mode.png'
@@ -277,7 +278,7 @@ class HomePageState extends State<HomePage> {
         gameWidget: SeriesHomePage(colorProfile: currentProfile, difficultyType: DifficultyType.easy, sequenceData: currentSequence),
         keyId: 5,
         title: "Test Mode",
-        subtitle: "A series of 10 mixed questions",
+        subtitle: "A series of questions based off the sequence.",
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
         sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
