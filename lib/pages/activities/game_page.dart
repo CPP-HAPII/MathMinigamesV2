@@ -36,6 +36,8 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
 
   late ColorProfile currentProfile = lightFlavor;
 
+  late Future<int> sequenceId;
+
   OverlayEntry? entry;
   late ConfettiController _bottomRightController1;
   late ConfettiController _bottomRightController2;
@@ -123,6 +125,7 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
       currentProfile = widget.colorProfile;
     }
   }
+  // Maybe load sequence here????
 
   Future<void> increaseCorrectCount() async {
     final SharedPreferencesWithCache prefs = await userSessionCache;

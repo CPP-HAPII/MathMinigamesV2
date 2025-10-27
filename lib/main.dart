@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -11,8 +12,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Ensure question banks are loaded before starting the app
+  // Ensure banks are loaded before starting the app
   await gameDataBank.initBanks();
+  await sequenceFiltersBank.initSequenceBank();
 
   runApp(const HomeApp());
 }
