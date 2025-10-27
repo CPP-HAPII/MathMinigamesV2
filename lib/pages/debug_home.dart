@@ -48,6 +48,16 @@ class DebugHomePageState extends State<DebugHomePage> {
     });
   }
 
+  Future<void> loadSequence() async {
+    final SharedPreferencesWithCache prefs = await _prefs;
+    int index = prefs.getInt('sequence_id') ?? 0;
+    if (sequenceFiltersBank.sequenceBank.isNotEmpty) {
+      setState(() {
+        currentSequence = sequenceFiltersBank.sequenceBank[index];
+      });
+    }
+  }
+
   
   Future<int> _loadSequenceIndex() async {
     final prefs = await _prefs;
@@ -185,6 +195,7 @@ class DebugHomePageState extends State<DebugHomePage> {
     });
 
     loadTheme();
+    loadSequence();
   }
 
   @override

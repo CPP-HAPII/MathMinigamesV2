@@ -361,6 +361,8 @@ class GameDataBank {
 
   // Firestore bank
   List<GameData> questionBank = [];
+  // Raw Firestore documents cached for filtering (maps)
+  List<Map<String, dynamic>> rawQuestionDocs = [];
 
   GameDataBank();
 
@@ -980,6 +982,8 @@ class GameDataBank {
     }
     Map<String, dynamic> questionsData = snapshot.data() as Map<String, dynamic>;
     List<dynamic> questions = questionsData['questions'];
+  // Cache raw question documents as maps for later filtering
+  rawQuestionDocs = questions.map<Map<String, dynamic>>((q) => Map<String, dynamic>.from(q)).toList();
     logger.i("Fetched ${questions.length} questions from Firestore");
 
     for (int i = 0; i < questions.length; i++) {
@@ -1533,25 +1537,32 @@ class GameDataBank {
   }
 
   List<GameData> getFilteredQuestions(SequenceData sequenceData){
-    List<dynamic> questions = getAllQuestions();
-    print("Fetched ${questions.length} questions from Firestore");
+    // Prefer using cached raw Firestore docs (populated by initQuestionBank)
+    final List<Map<String, dynamic>> sourceDocs = rawQuestionDocs.isNotEmpty
+        ? rawQuestionDocs
+        : (getAllQuestions().isNotEmpty ? rawQuestionDocs : <Map<String, dynamic>>[]);
 
-    // Use lowercase sets so comparisons become case-insensitive
-    final Set<String> allowedDifficulties = {};
-    final Set<String> allowedGameTypes = {};
-    final Set<String> allowedFilters = {};
+    if (sourceDocs.isEmpty) {
+      print('No raw question docs available for filtering. Ensure initQuestionBank() ran.');
+      return <GameData>[];
+    }
 
-    for (int i = 0; i < questions.length; i++) {
-      var q = questions[i];
+    // Build lowercase allowed sets
+    final Set<String> allowedDifficulties = sequenceData.difficulty.map((e) => e.toString().toLowerCase()).toSet();
+    final Set<String> allowedGameTypes = sequenceData.gameType.map((e) => e.toString().toLowerCase()).toSet();
+    final Set<String> allowedFilters = sequenceData.filters.map((e) => e.toString().toLowerCase()).toSet();
+
+    final List<GameData> results = [];
+
+    for (int i = 0; i < sourceDocs.length; i++) {
+      final q = sourceDocs[i];
       try {
-        if (q is! Map<String, dynamic>) continue;
         final qDifficulty = q['difficulty'];
         final qGameType = q['gameType'];
         final qTags = q['tags'];
 
-        // Local helper: match qValue against allowed set case-insensitively.
         bool matchesAllowed(dynamic qValue, Set<String> allowed) {
-          if (allowed.isEmpty) return true; // accept any when allowed set is empty
+          if (allowed.isEmpty) return true;
           if (qValue == null) return false;
           if (qValue is Iterable) {
             for (var e in qValue) {
@@ -1562,66 +1573,51 @@ class GameDataBank {
           return allowed.contains(qValue.toString().toLowerCase());
         }
 
-        if (!matchesAllowed(qDifficulty, allowedDifficulties)) {
-          print('Skipping question index $i (id=${q['id'] ?? '<no id>'}) due to difficulty mismatch: $qDifficulty');
-          continue;
-        }
-        if (!matchesAllowed(qGameType, allowedGameTypes)) {
-          continue;
-        }
+        if (!matchesAllowed(qDifficulty, allowedDifficulties)) continue;
+        if (!matchesAllowed(qGameType, allowedGameTypes)) continue;
 
-
-        bool filterMatch = true; // assume true, prove false if any missing
+        bool filterMatch = true;
         if (allowedFilters.isNotEmpty) {
-          if (qTags is List) {
-            for (var requiredFilter in allowedFilters) {
-              // If any required filter is NOT in qTags, mark false and break
-              if (!qTags.contains(requiredFilter)) {
+          if (qTags is Iterable) {
+            final Set<String> qTagSet = qTags.map((e) => e.toString().toLowerCase()).toSet();
+            for (var required in allowedFilters) {
+              if (!qTagSet.contains(required)) {
                 filterMatch = false;
                 break;
               }
             }
+          } else if (qTags != null) {
+            filterMatch = allowedFilters.length == 1 && allowedFilters.contains(qTags.toString().toLowerCase());
           } else {
-            // If tags is not a list, just check if that single tag matches all filters (impossible unless 1 filter)
-            filterMatch = allowedFilters.length == 1 && allowedFilters.contains(qTags.toString());
+            filterMatch = false;
           }
         }
-
-        // If filters exist but question doesn’t match them all, skip it
         if (!filterMatch) continue;
 
-
-        // Determine question type by id prefix when available
-        String id = (q['id'] is String) ? q['id'] : '';
-
+        // Convert to GameData subtype and add to results
+        final String id = (q['id'] is String) ? q['id'] as String : '';
         if (id.startsWith('jumble')) {
-          questionBank.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          results.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
         } else if (id.startsWith('playback')) {
-          questionBank.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          results.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
         } else if (id.startsWith('reading')) {
-          questionBank.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          results.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
         } else if (id.startsWith('typing')) {
-          questionBank.add(TypingGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          results.add(TypingGameData.fromFirestore(Map<String, dynamic>.from(q)));
         } else if (id.startsWith('fill')) {
-          questionBank.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
+          results.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
         } else {
-          // Fallback heuristics based on keys
           if (q.containsKey('webAudioLink')) {
-            questionBank.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
+            results.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
           } else if (q.containsKey('blankForm')) {
-            questionBank.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
+            results.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
           } else if (q.containsKey('displayedProblem') && q.containsKey('optionList')) {
-            // assume jumble-like
-            questionBank.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
+            results.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
           } else if (q.containsKey('displayedProblem') && q.containsKey('multiAcceptedAnswers')) {
-            // default to ReadAloud if unsure
-            questionBank.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
-          } else {
-            print('Skipping unknown question format at index $i: $q');
+            results.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
           }
         }
       } catch (e, st) {
-        // Log and continue so one malformed entry doesn't stop loading
         print('Failed to load question at index $i: $e');
         print(q);
         print(st);
@@ -1629,7 +1625,7 @@ class GameDataBank {
       }
     }
 
-    print("Loaded ${questionBank.length} easy questions");
-    return questionBank;
+    print('Loaded ${results.length} filtered questions for sequence "${sequenceData.name}"');
+    return results;
   }
 }

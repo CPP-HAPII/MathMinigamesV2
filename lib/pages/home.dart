@@ -117,6 +117,16 @@ class HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> loadSequence() async {
+    final SharedPreferencesWithCache prefs = await _prefs;
+    int index = prefs.getInt('sequence_id') ?? 0;
+    if (sequenceFiltersBank.sequenceBank.isNotEmpty) {
+      setState(() {
+        currentSequence = sequenceFiltersBank.sequenceBank[index];
+      });
+    }
+  }
+
   Future<int> _loadSequenceIndex() async {
     final prefs = await _prefs;
     int index = prefs.getInt('sequence_id') ?? 0;
@@ -261,10 +271,23 @@ class HomePageState extends State<HomePage> {
     List<Widget> gameCards = <Widget> [
       GameCard(
         imageAsset: const AssetImage(
+          'assets/images/test_mode.png'
+        ),
+        gameRoute: '/test-mode', 
+        gameWidget: SeriesHomePage(colorProfile: currentProfile, difficultyType: DifficultyType.easy, sequenceData: currentSequence),
+        keyId: 5,
+        title: "Test Mode",
+        subtitle: "A series of 10 mixed questions",
+        styleMode: TextStyle(color: currentProfile.textColor),
+        colorProfile: currentProfile,
+        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
+      ),
+      GameCard(
+        imageAsset: const AssetImage(
           'assets/images/easy_mode.png'
         ),
         gameRoute: "/easy-mode", 
-        gameWidget: SeriesHomePage(colorProfile: currentProfile, difficultyType: DifficultyType.easy,),
+        gameWidget: SeriesHomePage(colorProfile: currentProfile, difficultyType: DifficultyType.easy, sequenceData: currentSequence,),
         keyId: 0,
         title: "Easy Mode",
         subtitle: "Light and simple questions",
@@ -412,7 +435,7 @@ class HomePageState extends State<HomePage> {
                 )
               ],
             ),
-            FutureBuilder<int>(future: sequenceId, // This retrieves the saved index
+            FutureBuilder<int>(future: sequenceId, 
               builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
                 if (!snapshot.hasData) {
                   return const CircularProgressIndicator();

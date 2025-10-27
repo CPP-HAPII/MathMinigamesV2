@@ -213,9 +213,16 @@ class SeriesHomePageState extends State<SeriesHomePage> {
     if (!widget.difficultyType.equals(DifficultyType.random)) {
     // Use filtered questions if sequence data is provided, otherwise use series by difficulty.
     // TODO: If sequence issue add logging here for which sequence is being used
+    print('Start filtering questions for fixed page selection...'); 
     final Iterable<GameData> questions = widget.sequenceData != null
       ? gameDataBank.getFilteredQuestions(widget.sequenceData!)
       : gameDataBank.getSeriesByDifficulty(widget.difficultyType);
+    print("WHAT IS NOT LOADING: ${widget.sequenceData?.name ?? "N/A"}");
+    print("Sequence selected "
+      "${widget.sequenceData != null ? "with" : "without"} filtering. "
+      "Number of questions selected: ${questions.length}"
+    );
+    print("Sequence name: ${widget.sequenceData?.name ?? "N/A"}");
 
     for (GameData gameData in questions) {
           if (gameData is PlaybackGameData) {
@@ -388,6 +395,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
                 alignment: Alignment.center,
                 child: Text(
                   // TODO: update to show number of questions in filtered sequence
+                  // TODO: Update this to follow how game_series is being loaded for the question series
                   "Click to start the question series. You will navigate through ${gameDataBank.getSeriesByDifficulty(widget.difficultyType).length} questions. You can use the calculator on the top-right of the screen to help you answer the questions.",
                   style: TextStyle(
                       color: widget.colorProfile.textColor, fontSize: 16),
