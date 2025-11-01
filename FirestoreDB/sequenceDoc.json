@@ -1,0 +1,52 @@
+{
+    "sequences": [
+        {
+        "difficulty": ["Easy"],
+        "filters": [],
+        "gameType": [],
+        "name": "Easy Sequence"
+        },
+        {
+        "difficulty": ["Medium"],
+        "filters": [],
+        "gameType": [],
+        "name": "Medium Sequence"
+        },
+        {
+        "difficulty": ["Hard"],
+        "filters": [],
+        "gameType": [],
+        "name": "Hard Sequence"
+        },
+        {
+        "difficulty": ["Easy", "Medium", "Hard"],
+        "filters": ["addition"],
+        "gameType": [],
+        "name": "Addition Sequence"
+        },
+        {
+        "difficulty": ["Easy", "Medium", "Hard"],
+        "filters": ["subtraction"],
+        "gameType": [],
+        "name": "Subtraction Sequence"
+        },
+        {
+        "difficulty": ["Easy", "Medium", "Hard"],
+        "filters": ["multiplication"],
+        "gameType": [],
+        "name": "Multiplication Sequence"
+        },
+        {
+        "difficulty": ["Easy", "Medium", "Hard"],
+        "filters": ["division"],
+        "gameType": [],
+        "name": "Division Sequence"
+        },
+        {
+        "difficulty": ["Easy", "Medium", "Hard"],
+        "filters": ["word-problem"],
+        "gameType": [],
+        "name": "Word Problem Sequence"
+        }
+    ]
+}

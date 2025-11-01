@@ -9,6 +9,8 @@ import 'package:onwards/pages/constants.dart';
 import 'package:onwards/pages/debug_home.dart';
 import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/score_display.dart';
+import 'package:onwards/pages/create_sequence.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 const ImageProvider placeholderImage = AssetImage('assets/images/placeholder.png');
@@ -272,12 +274,12 @@ class HomePageState extends State<HomePage> {
       // TODO: Add image assets for Play Game mode. Remove other widgets
       GameCard(
         imageAsset: const AssetImage(
-          'assets/images/test_mode.png'
+          'assets/images/play_mode.png'
         ),
-        gameRoute: '/test-mode', 
+        gameRoute: '/play-mode', 
         gameWidget: SeriesHomePage(colorProfile: currentProfile, difficultyType: DifficultyType.easy, sequenceData: currentSequence),
         keyId: 5,
-        title: "Test Mode",
+        title: "Play Mode",
         subtitle: "A series of questions based off the sequence.",
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
@@ -383,6 +385,22 @@ class HomePageState extends State<HomePage> {
                 ],
               ),
             ),
+            // Entrance to the custom input page (create_sequence.dart)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: ElevatedButton(
+                style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const CustomSequencePage()),
+                  );
+                },
+                child: Text(
+                  'Add Sequence for Game',
+                  style: TextStyle(color: currentProfile.textColor),
+                ),
+              ),
+            ),
             FutureBuilder<int>(
               future: themeId, 
               builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
@@ -405,6 +423,7 @@ class HomePageState extends State<HomePage> {
                 }
               }
             ),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

@@ -381,7 +381,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(buttonLabel, style: TextStyle(color: widget.colorProfile.textColor)),
+        title: Text("Play Mode", style: TextStyle(color: widget.colorProfile.textColor)),
         backgroundColor: widget.colorProfile.headerColor,
         actions: const [ScoreDisplayAction(), CalcButton()],
       ),
