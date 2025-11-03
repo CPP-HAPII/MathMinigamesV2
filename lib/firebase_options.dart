@@ -44,9 +44,9 @@ class DefaultFirebaseOptions {
     apiKey: '???',
     appId: '1:558025501989:web:3fbe453cbbcf1ec240fecc',
     messagingSenderId: '558025501989',
-    projectId: 'fir-79444',
-    authDomain: 'fir-79444.firebaseapp.com',
-    storageBucket: 'fir-79444.firebasestorage.app',
+    projectId: 'onwards-448b0',
+    authDomain: 'onwards-448b0.firebaseapp.com',
+    storageBucket: 'onwards-448b0.firebasestorage.app',
     measurementId: 'G-09GWK5SKGD',
   );
 
