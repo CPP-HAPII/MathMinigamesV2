@@ -287,59 +287,6 @@ class HomePageState extends State<HomePage> {
       ),
       GameCard(
         imageAsset: const AssetImage(
-          'assets/images/easy_mode.png'
-        ),
-        gameRoute: "/easy-mode", 
-        gameWidget: SeriesHomePage(colorProfile: currentProfile, difficultyType: DifficultyType.easy, sequenceData: currentSequence,),
-        keyId: 0,
-        title: "Easy Mode",
-        subtitle: "Light and simple questions",
-        styleMode: TextStyle(color: currentProfile.textColor),
-        colorProfile: currentProfile,
-        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
-      ),
-      GameCard(
-        imageAsset: const AssetImage(
-          'assets/images/medium_mode.png'
-        ),
-        gameRoute: '/intermediate-mode',
-        gameWidget: SeriesHomePage(colorProfile: currentProfile, difficultyType: DifficultyType.intermediate,),
-        keyId: 1,
-        title: "Intermediate Mode",
-        subtitle: "More challenging than easy mode",
-        styleMode: TextStyle(color: currentProfile.textColor),
-        colorProfile: currentProfile,
-        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
-      ),
-      GameCard(
-        imageAsset: const AssetImage('assets/images/hard_mode.png'),
-        gameRoute: '/hard-mode',
-        gameWidget: SeriesHomePage(
-          colorProfile: currentProfile,
-          difficultyType: DifficultyType.hard,
-        ),
-        keyId: 2,
-        title: "Hard Mode",
-        subtitle: "Listening and Speaking may be required",
-        styleMode: TextStyle(color: currentProfile.textColor),
-        colorProfile: currentProfile,
-        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
-      ),
-      GameCard(
-        imageAsset: const AssetImage(
-          'assets/images/random_mode.png'
-        ),
-        gameRoute: '/random-mode', 
-        gameWidget: SeriesHomePage(colorProfile: currentProfile, difficultyType: DifficultyType.random,),
-        keyId: 3,
-        title: "Random Mode",
-        subtitle: "Try on any of the questions in a random selection",
-        styleMode: TextStyle(color: currentProfile.textColor),
-        colorProfile: currentProfile,
-        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
-      ),
-      GameCard(
-        imageAsset: const AssetImage(
           'assets/images/debug_mode.png'
         ),
         gameRoute: '/debug', 
@@ -491,6 +438,10 @@ class HomePageState extends State<HomePage> {
                       "Filters: ${currentSequence.filters.join(', ')}",
                       style: TextStyle(color: currentProfile.textColor),
                     ),
+                    Text(
+                      "Random: ${currentSequence.random ? "Yes" : "No"}",
+                      style: TextStyle(color: currentProfile.textColor),
+                    )
                   ],
                 );
               },

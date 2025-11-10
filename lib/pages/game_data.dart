@@ -73,18 +73,21 @@ class SequenceData {
     required this.difficulty,
     required this.filters,
     required this. gameType,
-    required this.name
+    required this.name,
+    this.random = false,
   });
   final List<String> difficulty;
   final List<String> filters;
   final List<String> gameType;
   final String name;
+  final bool random;
   factory SequenceData.fromFirestore(Map<String, dynamic> doc) {
     return SequenceData(
       difficulty: List<String>.from(doc['difficulty'] ?? []),
       filters: List<String>.from(doc['filters'] ?? []),
       gameType: List<String>.from(doc['gameType'] ?? []),
       name: doc['name'] as String,
+      random: doc['random'] as bool? ?? false,
     );
   }
 }

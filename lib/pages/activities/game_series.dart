@@ -32,7 +32,6 @@ class GameTestPage extends StatelessWidget {
   final ColorProfile colorProfile;
   final DifficultyType difficultyType;
   final SequenceData sequenceData;
-  // TODO: Maybe addSequenceData sequenceData; to simultar colorProfile being part of the widget.colorProfile
   @override
   Widget build(BuildContext context) {
     logger.i("The number of questions for the games are as follows: Playback: ${gameDataBank.playbackBank.length}, Reading: ${gameDataBank.readingBank.length}, Fill-in-the-Blank: ${gameDataBank.fillBlanksBank.length}, Jumble: ${gameDataBank.jumbleBank.length}, Typing: ${gameDataBank.typingBank.length}");
@@ -42,6 +41,7 @@ class GameTestPage extends StatelessWidget {
         maxQuestCount: 10,
         colorProfile: colorProfile,
         difficultyType: difficultyType,
+        sequenceData: sequenceData,
       ),
     );
   }
@@ -211,18 +211,24 @@ class SeriesHomePageState extends State<SeriesHomePage> {
 
   void selectFixedPages() {
     if (!widget.difficultyType.equals(DifficultyType.random)) {
-    // Use filtered questions if sequence data is provided, otherwise use series by difficulty.
     // TODO: If sequence issue add logging here for which sequence is being used
-    print('Start filtering questions for fixed page selection...'); 
-    final Iterable<GameData> questions = widget.sequenceData != null
+    final Iterable<GameData> questionsIter = widget.sequenceData != null
       ? gameDataBank.getFilteredQuestions(widget.sequenceData!)
       : gameDataBank.getSeriesByDifficulty(widget.difficultyType);
-    print("WHAT IS NOT LOADING: ${widget.sequenceData?.name ?? "N/A"}");
-    print("Sequence selected "
-      "${widget.sequenceData != null ? "with" : "without"} filtering. "
-      "Number of questions selected: ${questions.length}"
-    );
-    print("Sequence name: ${widget.sequenceData?.name ?? "N/A"}");
+
+    // If a SequenceData is present and its `random` flag is
+    // true, shuffle the selected questions and then take up to widget.maxQuestCount entries.
+    final List<GameData> questions = questionsIter.toList();
+
+    if (widget.sequenceData != null && widget.sequenceData!.random) {
+      questions.shuffle(Random());
+      if (questions.length > widget.maxQuestCount) {
+        questions.length = widget.maxQuestCount;
+      }
+    }
+
+    logger.i("Sequence selected ${widget.sequenceData != null ? "with" : "without"} filtering. "
+        "Number of questions selected: ${questions.length}. Sequence Name: ${widget.sequenceData?.name ?? "N/A"}");
 
     for (GameData gameData in questions) {
           if (gameData is PlaybackGameData) {
@@ -394,8 +400,6 @@ class SeriesHomePageState extends State<SeriesHomePage> {
             Align(
                 alignment: Alignment.center,
                 child: Text(
-                  // TODO: update to show number of questions in filtered sequence
-                  // TODO: Update this to follow how game_series is being loaded for the question series
                   "Click to start the question series. You will navigate through ${gameDataBank.getFilteredQuestions(widget.sequenceData!).length} questions. You can use the calculator on the top-right of the screen to help you answer the questions.",
                   style: TextStyle(
                       color: widget.colorProfile.textColor, fontSize: 16),
