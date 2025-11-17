@@ -58,7 +58,7 @@ class _CustomSequencePageState extends State<CustomSequencePage> {
         case Difficulty.easy:
           return 'Easy';
         case Difficulty.medium:
-          return 'Medium';
+          return 'Intermediate';
         case Difficulty.hard:
           return 'Hard';
       }
@@ -187,7 +187,7 @@ class _CustomSequencePageState extends State<CustomSequencePage> {
                     case Difficulty.easy:
                       return 'Easy';
                     case Difficulty.medium:
-                      return 'Medium';
+                      return 'Intermediate';
                     case Difficulty.hard:
                       return 'Hard';
                   }

@@ -1,6 +1,7 @@
 
 // ignore_for_file: non_constant_identifier_names
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:onwards/pages/activities/game_page.dart';
 import 'package:onwards/pages/components/calculator.dart';
 import 'package:onwards/pages/components/progress_bar.dart';
@@ -119,11 +120,13 @@ class GameFormState extends GamePageState<GameForm> {
   int currentCount = 0;
   // data for database
   bool lastCorrectState = false;
+  late FlutterTts flutterTts;
 
   @override
   void initState() {
     super.initState();
     maxSelection = widget.maxSelectedAnswers;
+    flutterTts = FlutterTts();
   }
 
   @override
@@ -219,6 +222,10 @@ class GameFormState extends GamePageState<GameForm> {
     });
   }
 
+  void _speakQuestion() async {
+    await flutterTts.speak(widget.questionLabel);
+  }
+
   // create a list of widgets that represents the selected button choices
   List<Widget> renderConditionalLabels() {
     List<Widget> widgets =[];
@@ -292,7 +299,6 @@ class GameFormState extends GamePageState<GameForm> {
                       ),
                       textAlign: TextAlign.center,
                   ),
-                  // Render the question label
                   Padding(
                     padding: const EdgeInsets.all(8),
                     child: widget.showArithmitic ? Text(
@@ -306,7 +312,21 @@ class GameFormState extends GamePageState<GameForm> {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Column( 
+                    child: ElevatedButton(
+                      onPressed: _speakQuestion,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: currentProfile.buttonColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
+                      child: Text(
+                        'Hear Question',
+                        style: TextStyle(color: currentProfile.textColor),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
                       // attempt to render the selected answers as they are moved into the list
                       children: [
                         Row(
