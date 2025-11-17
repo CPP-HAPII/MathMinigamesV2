@@ -10,6 +10,7 @@ import 'package:onwards/pages/debug_home.dart';
 import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/score_display.dart';
 import 'package:onwards/pages/create_sequence.dart';
+import 'package:onwards/pages/create_question.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -271,7 +272,7 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     List<Widget> gameCards = <Widget> [
-      // TODO: Add image assets for Play Game mode. Remove other widgets
+      // TODO: Add image asset for Play Game mode
       GameCard(
         imageAsset: const AssetImage(
           'assets/images/play_mode.png'
@@ -332,7 +333,8 @@ class HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            // Entrance to the custom input page (create_sequence.dart)
+
+            // TODO: Entrance to the custom input page (create_sequence.dart) Move to admin page
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: ElevatedButton(
@@ -344,6 +346,21 @@ class HomePageState extends State<HomePage> {
                 },
                 child: Text(
                   'Add Sequence for Game',
+                  style: TextStyle(color: currentProfile.textColor),
+                ),
+              ),
+            ),
+            Padding (
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: ElevatedButton(
+                style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const CustomQuestionPage()),
+                  );
+                },
+                child: Text(
+                  'Add Question to Database',
                   style: TextStyle(color: currentProfile.textColor),
                 ),
               ),

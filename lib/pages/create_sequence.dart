@@ -22,13 +22,9 @@ class _CustomSequencePageState extends State<CustomSequencePage> {
   // selections
   final Set<GameType> _selectedGameTypes = <GameType>{};
   final Set<Difficulty> _selectedDifficulties = <Difficulty>{};
+  bool isRandomSequence = false;
 
   // TODO: implement:
-  // difficulty 3 selections
-  // filters list of strings
-  // gameType 5 selections
-  // difficulty 3 selections
-  // name string
 
   Future<void> _onSave() async {
     final seqName = _nameController.text.trim();
@@ -36,7 +32,7 @@ class _CustomSequencePageState extends State<CustomSequencePage> {
     final seqFilters = rawFilters.isEmpty
         ? <String>[]
         : rawFilters.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-
+    final isRandom = isRandomSequence;
     // Map selected enums to the string shape expected by SequenceData
     final gameTypeStrings = _selectedGameTypes.map((gt) {
       switch (gt) {
@@ -172,10 +168,10 @@ class _CustomSequencePageState extends State<CustomSequencePage> {
             const SizedBox(height: 12),
 
             // Difficulty multi-select
-            Align(
+            const Align(
               alignment: Alignment.centerLeft,
               child: Padding(
-                padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+                padding: EdgeInsets.only(top: 8.0, bottom: 4.0),
                 child: Text('Select difficulty levels:', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
@@ -208,6 +204,28 @@ class _CustomSequencePageState extends State<CustomSequencePage> {
               }).toList(),
             ),
 
+            // Random Sequence toggle
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: EdgeInsets.only(top: 8.0, bottom: 4.0),
+                child: Text('Select if Random Sequence:', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            Wrap(
+              spacing: 8.0,
+              children: [
+                FilterChip(
+                  label: const Text('Random Sequence'),
+                  selected: isRandomSequence,
+                  onSelected: (selected) {
+                    setState(() {
+                      isRandomSequence = selected;
+                    });
+                  },
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
 
             // Save button
