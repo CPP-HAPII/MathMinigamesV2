@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:onwards/pages/activities/game_page.dart';
 import 'package:onwards/pages/components/calculator.dart';
 import 'package:onwards/pages/components/progress_bar.dart';
@@ -7,6 +8,7 @@ import 'package:onwards/pages/constants.dart';
 import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
+import 'package:onwards/pages/translation.dart';
 
 const TypingGameData dummyData = TypingGameData(
     displayedProblem: "", multiAcceptedAnswers: ["", ""], skills: []);
@@ -97,9 +99,16 @@ class GameForm extends GamePage {
 class _GameFormState extends GamePageState<GameForm> {
   // data for cache
   final _answerFieldController = TextEditingController();
+  late FlutterTts flutterTts;
 
   // data for database
   bool lastCorrectState = false;
+
+  @override
+  void initState() {
+    super.initState();
+    flutterTts = FlutterTts();
+  }
 
   @override
   void dispose() {
@@ -114,8 +123,16 @@ class _GameFormState extends GamePageState<GameForm> {
     super.dispose();
   }
 
+  void _speakQuestion() async {
+    try {
+      await flutterTts.setLanguage('en-US');
+    } catch (_) {}
+    await flutterTts.setPitch(1.0);
+    await flutterTts.setSpeechRate(1.0);
+    await flutterTts.speak(widget.questionLabel);
+  }
+
   /// Checks the answer in the field against the accepted answers. The answer in the
-  /// field is turned to lowercase before validation
   bool validateAnswer() {
     var isCorrect = true;
     if (widget.count > 0) {
@@ -143,12 +160,12 @@ class _GameFormState extends GamePageState<GameForm> {
         child: Stack(
           children: [
             addConfettiBlasters(),
-            Align(
-              alignment: Alignment.center,
+            SingleChildScrollView(
               child: Form(
                 key: const Key("_formKey"),
                 child: Column(
                   children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                     Text(
                       widget.instructions,
                       style: TextStyle(
@@ -165,6 +182,29 @@ class _GameFormState extends GamePageState<GameForm> {
                           color: currentProfile.textColor,
                           fontSize: 30,
                         ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: ElevatedButton(
+                        onPressed: _speakQuestion,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: currentProfile.buttonColor,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        ),
+                        child: Text(
+                          'Hear Question',
+                          style: TextStyle(color: currentProfile.textColor),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: TranslateButtonAndText(
+                        sourceText: widget.questionLabel,
+                        colorProfile: currentProfile,
+                        speakOnTranslate: false,
+                        targetLanguage: 'es',
                       ),
                     ),
                     SizedBox(

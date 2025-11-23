@@ -8,6 +8,7 @@ import 'package:onwards/pages/constants.dart';
 import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
+import 'package:onwards/pages/translation.dart';
 
 import 'package:onwards/pages/activities/game_page.dart';
 import 'package:onwards/pages/activities/reading/speech_to_text_helper.dart';
@@ -145,21 +146,20 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
   }
 
   bool validateAnswer() {
-    bool isCorrect = true;
+    final transcribed = _transcribedText.toLowerCase().replaceAll(RegExp(r"\s+"), ' ').trim();
 
     for (List<String> answerList in widget.acceptedAnswers) {
-      for (String potentialAnswer in answerList) {
-        if (_transcribedText.toLowerCase() != potentialAnswer) {
-          logger.i("Could not find a match in one of the answers");
-          isCorrect = false;
-        } else {
-          logger.i("Found one match in one of the answers");
-          isCorrect = true;
-          return isCorrect;
-        }
+      // Concatenate the inner list into a single string
+      final candidate = answerList.join(' ').toLowerCase().replaceAll(RegExp(r"\s+"), ' ').trim();
+      logger.i("Comparing transcribed='${transcribed}' to candidate='${candidate}'");
+      if (transcribed == candidate) {
+        logger.i("Found one match in one of the answers: $candidate");
+        return true;
       }
     }
-    return isCorrect;
+
+    logger.i("Transcribed text='${_transcribedText}' did not match any candidates. Candidates= ${widget.acceptedAnswers}");
+    return false;
   }
 
   void clearText() {
@@ -185,10 +185,10 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
       child: Stack(
         children: [
           addConfettiBlasters(),
-          Align(
-            alignment: Alignment.center,
+          SingleChildScrollView(
             child: Column(
               children: [
+                SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                 Text(
                   widget.titleText,
                   style: TextStyle(
@@ -205,6 +205,15 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
                       color: currentProfile.textColor, 
                       fontSize: 30,
                     ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: TranslateButtonAndText(
+                    sourceText: widget.questionLabel,
+                    colorProfile: currentProfile,
+                    speakOnTranslate: false,
+                    targetLanguage: 'es',
                   ),
                 ),
                 Padding(

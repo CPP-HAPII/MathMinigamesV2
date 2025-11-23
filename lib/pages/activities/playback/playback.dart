@@ -10,6 +10,7 @@ import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
 import 'package:onwards/pages/tts.dart';
+import 'package:onwards/pages/translation.dart';
 
 const PlaybackGameData dummyData = PlaybackGameData(webAudioLink: "", multiAcceptedAnswers: [], writtenPrompt: "", optionList: [], skills: []);
 
@@ -226,12 +227,10 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
       child: Stack(
         children: [
           addConfettiBlasters(),
-          Align(
-            alignment: Alignment.center,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 40),
-              child: Column(
-                children: [
+          SingleChildScrollView(
+            child: Column(
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                   Text(
                     widget.titleQuestion,
                     style: TextStyle(
@@ -241,6 +240,15 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                       textAlign: TextAlign.center,
                   ),
                   TTSRunner(voiceLine: widget.questionLabel),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: TranslateButtonAndText(
+                      sourceText: widget.questionLabel,
+                      colorProfile: currentProfile,
+                      speakOnTranslate: true,
+                      targetLanguage: 'es',
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Column( 
@@ -301,9 +309,8 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                     ],
                   )
                 ],
-              ),  
-            )
-          ),
+              ),
+            ),
           const Align(
             alignment: Alignment.bottomCenter,
             child: ProgressBar(),

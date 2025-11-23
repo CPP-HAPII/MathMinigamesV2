@@ -374,15 +374,16 @@ class SeriesHomePageState extends State<SeriesHomePage> {
       TypeActivityScreen(colorProfile: widget.colorProfile)
     ]));
 
-    String buttonLabel = "Random Mode";
+    String buttonLabel = "Play Game";
+    /*
     if (widget.difficultyType.equals(DifficultyType.easy)) {
       buttonLabel = "Easy Mode";
     } else if (widget.difficultyType.equals(DifficultyType.intermediate)) {
       buttonLabel = "Intermediate Mode";
-    }
-    else if (widget.difficultyType.equals(DifficultyType.hard)) {
+    } else if (widget.difficultyType.equals(DifficultyType.hard)) {
       buttonLabel = "Hard Mode";
     }
+    */
     
 
     return Scaffold(

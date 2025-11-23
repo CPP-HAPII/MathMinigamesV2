@@ -9,7 +9,7 @@ import 'package:onwards/pages/components/skip.dart';
 import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
-import 'package:translator/translator.dart';
+import 'package:onwards/pages/translation.dart';
 
 import '../constants.dart';
 
@@ -122,7 +122,6 @@ class GameFormState extends GamePageState<GameForm> {
   // data for database
   bool lastCorrectState = false;
   late FlutterTts flutterTts;
-  final translator = GoogleTranslator();
 
   @override
   void initState() {
@@ -225,52 +224,12 @@ class GameFormState extends GamePageState<GameForm> {
   }
 
   void _speakQuestion() async {
-    await flutterTts.speak(widget.questionLabel);
-  }
-
-  void _displayTranslationOverlay() {
-    showTranslationOverlay(context, widget.questionLabel, widget.colorProfile);
-  }
-
-  Future<void> showTranslationOverlay(BuildContext context, String questionText, ColorProfile profile) async {
     try {
-      final translation = await translator.translate(questionText, from: 'en', to: 'es');
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            backgroundColor: profile.backBoxDecoration.color,
-            title: Text('Translation', style: TextStyle(color: profile.textColor)),
-            content: Text(
-              'Translated: $translation',
-              style: TextStyle(color: profile.textColor),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Close', style: TextStyle(color: profile.buttonColor)),
-              ),
-            ],
-          );
-        },
-      );
-    } catch (e) {
-      logger.e('Translation failed: $e');
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Translation Error'),
-            content: Text('Could not translate question: $e'),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
-            ],
-          );
-        },
-      );
-    }
+      await flutterTts.setLanguage('en-US');
+    } catch (_) {}
+    await flutterTts.setPitch(1.0);
+    await flutterTts.setSpeechRate(1.0);
+    await flutterTts.speak(widget.questionLabel);
   }
 
   // create a list of widgets that represents the selected button choices
@@ -332,12 +291,10 @@ class GameFormState extends GamePageState<GameForm> {
       child: Stack(
         children: [
           addConfettiBlasters(),
-          Align(
-            alignment: Alignment.center,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 40),
-              child: Column(
-                children: [
+          SingleChildScrollView(
+            child: Column(
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                   Text(
                     widget.titleQuestion,
                     style: TextStyle(
@@ -373,16 +330,11 @@ class GameFormState extends GamePageState<GameForm> {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: ElevatedButton(
-                      onPressed: _displayTranslationOverlay,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: currentProfile.buttonColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      ),
-                      child: Text(
-                        'Translate Question',
-                        style: TextStyle(color: currentProfile.textColor),
-                      ),
+                    child: TranslateButtonAndText(
+                      sourceText: widget.questionLabel,
+                      colorProfile: currentProfile,
+                      speakOnTranslate: true,
+                      targetLanguage: 'es',
                     ),
                   ),
                   Padding(
@@ -445,8 +397,7 @@ class GameFormState extends GamePageState<GameForm> {
                   ),
                 ],
               ),
-            )
-          ),
+            ),
           const Align(
             alignment: Alignment.bottomCenter,
             child: ProgressBar(),

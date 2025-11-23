@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:onwards/pages/activities/game_page.dart';
 import 'package:onwards/pages/components/calculator.dart';
 import 'package:onwards/pages/components/progress_bar.dart';
@@ -10,6 +11,7 @@ import 'package:onwards/pages/constants.dart';
 import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
+import 'package:onwards/pages/translation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const FillBlanksGameData dummyData = FillBlanksGameData(displayedProblem: "", multiAcceptedAnswers: [], writtenPrompt: "", blankForm: "", optionList: [], skills: []);
@@ -105,11 +107,13 @@ class GameFormState extends GamePageState<GameForm> {
   final List<String> _selectedAnswers = [];
   int maxSelection = 0;
   int currentCount = 0;
+  late FlutterTts flutterTts;
 
   @override
   void initState() {
     super.initState();
     maxSelection = widget.maxSelectedAnswers;
+    flutterTts = FlutterTts();
   }
 
   @override
@@ -123,6 +127,15 @@ class GameFormState extends GamePageState<GameForm> {
     setSkills(currentSkills);
     setQuestionId(widget.id);
     super.dispose();
+  }
+
+  void _speakQuestion() async {
+    try {
+      await flutterTts.setLanguage('en-US');
+    } catch (_) {}
+    await flutterTts.setPitch(1.0);
+    await flutterTts.setSpeechRate(1.0);
+    await flutterTts.speak(widget.questionLabel);
   }
 
   bool validateAnswer() {
@@ -249,10 +262,10 @@ class GameFormState extends GamePageState<GameForm> {
       child: Stack(
         children: [
           addConfettiBlasters(),
-          Align(
-            alignment: Alignment.center,
+          SingleChildScrollView(
             child: Column(
               children: [
+                SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                 Text(
                   "Use the blocks below to form the written form of the expression:",
                   style: TextStyle(
@@ -270,6 +283,29 @@ class GameFormState extends GamePageState<GameForm> {
                       fontSize: 30,
                       
                     ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: ElevatedButton(
+                    onPressed: _speakQuestion,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: currentProfile.buttonColor,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                    child: Text(
+                      'Hear Question',
+                      style: TextStyle(color: currentProfile.textColor),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: TranslateButtonAndText(
+                    sourceText: widget.questionLabel,
+                    colorProfile: currentProfile,
+                    speakOnTranslate: false,
+                    targetLanguage: 'es',
                   ),
                 ),
                 Padding(
@@ -332,7 +368,7 @@ class GameFormState extends GamePageState<GameForm> {
                 )
               ],
             ),
-          ),
+            ),
           const Align(
             alignment: Alignment.bottomCenter,
             child: ProgressBar(),

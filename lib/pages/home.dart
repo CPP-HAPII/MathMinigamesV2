@@ -307,204 +307,207 @@ class HomePageState extends State<HomePage> {
         backgroundColor: currentProfile.headerColor,
         centerTitle: true,
         actions: const [ScoreDisplayAction()],
-        
       ),
-      body: Container(
-        decoration: currentProfile.backBoxDecoration,
-        child: Column(
-          children: [
-            SizedBox(
-              width: 900.0,
-              height: 500.0,
-              child: ListView(
-                key: const ValueKey('HomeListView'),
-                primary: true,
-                padding: const EdgeInsetsDirectional.only(
-                  top: 90.0
-                ),
-                children: [
-                  CarouselCardItem(
-                    child: DesktopCarousel(
-                      height: minHeight,
-                      colorProfile: currentProfile, 
-                      children: gameCards,
-                    )
-                  )
-                ],
-              ),
-            ),
-
-            // TODO: Entrance to the custom input page (create_sequence.dart) Move to admin page
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: ElevatedButton(
-                style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const CustomSequencePage()),
-                  );
-                },
-                child: Text(
-                  'Add Sequence for Game',
-                  style: TextStyle(color: currentProfile.textColor),
-                ),
-              ),
-            ),
-            Padding (
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: ElevatedButton(
-                style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const CustomQuestionPage()),
-                  );
-                },
-                child: Text(
-                  'Add Question to Database',
-                  style: TextStyle(color: currentProfile.textColor),
-                ),
-              ),
-            ),
-            FutureBuilder<int>(
-              future: themeId, 
-              builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                switch (snapshot.connectionState) {
-                  case ConnectionState.none:
-                  case ConnectionState.waiting:
-                    return const CircularProgressIndicator();
-                  case ConnectionState.active:
-                  case ConnectionState.done:
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}', style: TextStyle(color: currentProfile.textColor));
-                    } else {
-                      return Text(
-                        'Current theme: ${currentProfile.idKey}',
-                        style: TextStyle(
-                          color: currentProfile.textColor
-                        ),
-                      );
-                    }
-                }
-              }
-            ),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Tooltip(
-                  message: "Previous Theme",
-                  child: ElevatedButton(
-                    style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
-                    onPressed: _decrementCounter, 
-                    child: Icon(Icons.arrow_left, color: currentProfile.textColor)
+      body: SingleChildScrollView(
+        child: Container(
+          decoration: currentProfile.backBoxDecoration,
+          child: Column(
+            children: [
+              SizedBox(
+                width: 900.0,
+                height: 500.0,
+                child: ListView(
+                  key: const ValueKey('HomeListView'),
+                  primary: true,
+                  padding: const EdgeInsetsDirectional.only(
+                    top: 90.0,
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text(
-                    "Theme Select",
-                    style: TextStyle(
-                      color: currentProfile.textColor
-                    ),
-                  ),
-                ),
-                Tooltip(
-                  message: "Next Theme",
-                  preferBelow: true,
-                  child: ElevatedButton(
-                    style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
-                    onPressed: _incrementCounter,
-                    child: Icon(Icons.arrow_right, color: currentProfile.textColor),
-                  ),
-                )
-              ],
-            ),
-            FutureBuilder<int>(future: sequenceId, 
-              builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                if (!snapshot.hasData) {
-                  return const CircularProgressIndicator();
-                }
-
-                int currentIndex = snapshot.data!;
-                // Prevent crash if Firestore hasn't loaded sequences yet
-                if (sequenceFiltersBank.sequenceBank.isEmpty) {
-                  return Text("No sequences loaded.", style: TextStyle(color: currentProfile.textColor));
-                }
-
-                // Clamp index within valid range
-                currentIndex = currentIndex.clamp(0, sequenceFiltersBank.sequenceBank.length - 1);
-
-                final currentSequence = sequenceFiltersBank.sequenceBank[currentIndex];
-
-                return Column(
                   children: [
-                    Text(
-                      "Current Sequence: ${currentSequence.name}",
-                      style: TextStyle(color: currentProfile.textColor),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Difficulty: ${currentSequence.difficulty.join(', ')}",
-                      style: TextStyle(color: currentProfile.textColor),
-                    ),
-                    Text(
-                      "Game Types: ${currentSequence.gameType.join(', ')}",
-                      style: TextStyle(color: currentProfile.textColor),
-                    ),
-                    Text(
-                      "Filters: ${currentSequence.filters.join(', ')}",
-                      style: TextStyle(color: currentProfile.textColor),
-                    ),
-                    Text(
-                      "Random: ${currentSequence.random ? "Yes" : "No"}",
-                      style: TextStyle(color: currentProfile.textColor),
+                    CarouselCardItem(
+                      child: DesktopCarousel(
+                        height: minHeight,
+                        colorProfile: currentProfile,
+                        children: gameCards,
+                      ),
                     )
                   ],
-                );
-              },
-            ),
-            Row(mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Tooltip(
-                  message: "Previous Sequence",
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final prefs = await _prefs;
-                      int currentIndex = (prefs.getInt('sequence_id') ?? 0);
-                      if (currentIndex > 0) {
-                        await _setSequenceCounter(currentIndex - 1);
-                      }
-                    },
-                    style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
-                    child: Icon(Icons.arrow_left, color: currentProfile.textColor),
-                  ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              ),
+
+              // TODO: Entrance to the custom input page (create_sequence.dart) Move to admin page
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ElevatedButton(
+                  style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const CustomSequencePage()),
+                    );
+                  },
                   child: Text(
-                    "Sequence Select",
+                    'Add Sequence for Game',
                     style: TextStyle(color: currentProfile.textColor),
                   ),
                 ),
-                Tooltip(
-                  message: "Next Sequence",
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final prefs = await _prefs;
-                      int currentIndex = (prefs.getInt('sequence_id') ?? 0);
-                      if (currentIndex < sequenceFiltersBank.sequenceBank.length - 1) {
-                        await _setSequenceCounter(currentIndex + 1);
-                      }
-                    },
-                    style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
-                    child: Icon(Icons.arrow_right, color: currentProfile.textColor),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ElevatedButton(
+                  style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const CustomQuestionPage()),
+                    );
+                  },
+                  child: Text(
+                    'Add Question to Database',
+                    style: TextStyle(color: currentProfile.textColor),
                   ),
                 ),
-              ],
-            ),
-          ],
-        )
-      )
+              ),
+              FutureBuilder<int>(
+                future: themeId,
+                builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                    case ConnectionState.waiting:
+                      return const CircularProgressIndicator();
+                    case ConnectionState.active:
+                    case ConnectionState.done:
+                      if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}', style: TextStyle(color: currentProfile.textColor));
+                      } else {
+                        return Text(
+                          'Current theme: ${currentProfile.idKey}',
+                          style: TextStyle(
+                            color: currentProfile.textColor,
+                          ),
+                        );
+                      }
+                  }
+                },
+              ),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Tooltip(
+                    message: "Previous Theme",
+                    child: ElevatedButton(
+                      style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
+                      onPressed: _decrementCounter,
+                      child: Icon(Icons.arrow_left, color: currentProfile.textColor),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      "Theme Select",
+                      style: TextStyle(
+                        color: currentProfile.textColor,
+                      ),
+                    ),
+                  ),
+                  Tooltip(
+                    message: "Next Theme",
+                    preferBelow: true,
+                    child: ElevatedButton(
+                      style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
+                      onPressed: _incrementCounter,
+                      child: Icon(Icons.arrow_right, color: currentProfile.textColor),
+                    ),
+                  )
+                ],
+              ),
+              FutureBuilder<int>(
+                future: sequenceId,
+                builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
+
+                  int currentIndex = snapshot.data!;
+                  // Prevent crash if Firestore hasn't loaded sequences yet
+                  if (sequenceFiltersBank.sequenceBank.isEmpty) {
+                    return Text("No sequences loaded.", style: TextStyle(color: currentProfile.textColor));
+                  }
+
+                  // Clamp index within valid range
+                  currentIndex = currentIndex.clamp(0, sequenceFiltersBank.sequenceBank.length - 1);
+
+                  final currentSequence = sequenceFiltersBank.sequenceBank[currentIndex];
+
+                  return Column(
+                    children: [
+                      Text(
+                        "Current Sequence: ${currentSequence.name}",
+                        style: TextStyle(color: currentProfile.textColor),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Difficulty: ${currentSequence.difficulty.join(', ')}",
+                        style: TextStyle(color: currentProfile.textColor),
+                      ),
+                      Text(
+                        "Game Types: ${currentSequence.gameType.join(', ')}",
+                        style: TextStyle(color: currentProfile.textColor),
+                      ),
+                      Text(
+                        "Filters: ${currentSequence.filters.join(', ')}",
+                        style: TextStyle(color: currentProfile.textColor),
+                      ),
+                      Text(
+                        "Random: ${currentSequence.random ? "Yes" : "No"}",
+                        style: TextStyle(color: currentProfile.textColor),
+                      )
+                    ],
+                  );
+                },
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Tooltip(
+                    message: "Previous Sequence",
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final prefs = await _prefs;
+                        int currentIndex = (prefs.getInt('sequence_id') ?? 0);
+                        if (currentIndex > 0) {
+                          await _setSequenceCounter(currentIndex - 1);
+                        }
+                      },
+                      style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
+                      child: Icon(Icons.arrow_left, color: currentProfile.textColor),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      "Sequence Select",
+                      style: TextStyle(color: currentProfile.textColor),
+                    ),
+                  ),
+                  Tooltip(
+                    message: "Next Sequence",
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final prefs = await _prefs;
+                        int currentIndex = (prefs.getInt('sequence_id') ?? 0);
+                        if (currentIndex < sequenceFiltersBank.sequenceBank.length - 1) {
+                          await _setSequenceCounter(currentIndex + 1);
+                        }
+                      },
+                      style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
+                      child: Icon(Icons.arrow_right, color: currentProfile.textColor),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

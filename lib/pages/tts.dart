@@ -119,6 +119,10 @@ class TSRunnerState extends State<TTSRunner> {
   }
 
   Future<void> _speak() async {
+    // Ensure default language for gameplay TTS is English (explicitly set here)
+    try {
+      await flutterTts.setLanguage('en-US');
+    } catch (_) {}
     await flutterTts.setVolume(volume);
     await flutterTts.setSpeechRate(rate);
     await flutterTts.setPitch(pitch);
