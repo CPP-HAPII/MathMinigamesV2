@@ -11,6 +11,7 @@ import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/score_display.dart';
 import 'package:onwards/pages/create_sequence.dart';
 import 'package:onwards/pages/create_question.dart';
+import 'package:onwards/pages/components/lang_assist.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,6 +34,7 @@ class HomeApp extends StatelessWidget {
   const HomeApp({
     super.key,
   });
+
 
   final ColorProfile colorProfile = lightFlavor;
 
@@ -94,7 +96,7 @@ class HomePageState extends State<HomePage> {
   final Future<SharedPreferencesWithCache> _prefs =
     SharedPreferencesWithCache.create(
       cacheOptions: const SharedPreferencesWithCacheOptions(
-        allowList: <String>{'theme_id', 'sequence_id', 'correct', 'missed', 'mastered_topics', 'weak_topics', 'score'}
+        allowList: <String>{'theme_id', 'sequence_id', 'lang_assist_level', 'correct', 'missed', 'mastered_topics', 'weak_topics', 'score'}
       )
     );
 
@@ -105,6 +107,9 @@ class HomePageState extends State<HomePage> {
   late Future<List<String>> weakTopicList;
   late Future<int> score;
   late Future<int> sequenceId;
+  late Future<int> langAssistIndex;
+  final List<LanguageAssistLevel> levels = LanguageAssistLevel.values;
+  int selected = 0;
 
   SequenceData? currentSequence;
 
@@ -157,6 +162,26 @@ class HomePageState extends State<HomePage> {
     return sequenceFiltersBank.sequenceBank[index];
   } 
 
+  Future<void> _setLangAssistLevel(int index) async {
+    if (index < 0 || index >= levels.length) return;
+
+    final prefs = await _prefs;
+
+    await prefs.setInt('lang_assist_level', index);
+
+    setState(() {
+      selected = index;
+    });
+
+    logger.i('Language Assist level set to ${levels[index].label}');
+  }
+
+  void _loadAssistLevel() async {
+    final saved = await AssistLevelService.load();
+    setState(() {
+      selected = saved.index;
+    });
+  }
 
   ColorProfile _getProfileByIndex(int index) {
     switch(index) {
@@ -265,7 +290,7 @@ class HomePageState extends State<HomePage> {
       return prefs.getStringList('weak_topics') ?? <String>[];
     });
     sequenceId = _loadSequenceIndex();
-
+    _loadAssistLevel();
     loadTheme();
   }
 
@@ -386,6 +411,39 @@ class HomePageState extends State<HomePage> {
                       }
                   }
                 },
+              ),
+              Text(
+                "Language Assist",
+                style: TextStyle(
+                  fontSize: 24,
+                  color: currentProfile.textColor,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(levels.length, (index) {
+                  final isSelected = selected == index;
+
+                  return Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isSelected
+                            ? Colors.green
+                            : currentProfile.buttonColor,
+                      ),
+                      onPressed: () => _setLangAssistLevel(index),
+                      child: Text(
+                        levels[index].label,
+                        style: TextStyle(
+                          color: currentProfile.textColor,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
               ),
 
               Row(

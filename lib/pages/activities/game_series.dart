@@ -20,6 +20,7 @@ import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:onwards/pages/components/lang_assist.dart';
 
 class GameTestPage extends StatelessWidget {
   const GameTestPage({
@@ -111,6 +112,8 @@ class SeriesHomePageState extends State<SeriesHomePage> {
   double progressForBar = 0.0;
   int currentScore = 0;
   bool isHighScoreUpdated = false;
+  LanguageAssistLevel? assistLevel;
+
 
   // Data for database. These are the sequence start times
   Timestamp startTime = Timestamp.now();

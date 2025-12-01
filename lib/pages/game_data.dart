@@ -1583,14 +1583,13 @@ class GameDataBank {
         if (allowedFilters.isNotEmpty) {
           if (qTags is Iterable) {
             final Set<String> qTagSet = qTags.map((e) => e.toString().toLowerCase()).toSet();
-            for (var required in allowedFilters) {
-              if (!qTagSet.contains(required)) {
-                filterMatch = false;
-                break;
-              }
-            }
+            
+            
+            filterMatch = qTagSet.any((tag) => allowedFilters.contains(tag));
+
           } else if (qTags != null) {
-            filterMatch = allowedFilters.length == 1 && allowedFilters.contains(qTags.toString().toLowerCase());
+            final singleTag = qTags.toString().toLowerCase();
+            filterMatch = allowedFilters.contains(singleTag);
           } else {
             filterMatch = false;
           }

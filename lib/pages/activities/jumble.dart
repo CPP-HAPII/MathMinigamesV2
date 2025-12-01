@@ -10,6 +10,9 @@ import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
 import 'package:onwards/pages/translation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:onwards/pages/components/lang_assist.dart';
+
 
 import '../constants.dart';
 
@@ -122,12 +125,24 @@ class GameFormState extends GamePageState<GameForm> {
   // data for database
   bool lastCorrectState = false;
   late FlutterTts flutterTts;
+  LanguageAssistLevel? assistLevel;
 
   @override
   void initState() {
     super.initState();
     maxSelection = widget.maxSelectedAnswers;
     flutterTts = FlutterTts();
+    loadAssist();
+  }
+
+  Future<void> loadAssist() async {
+
+    assistLevel = await AssistLevelService.load();
+    setState(() {
+        assistLevel = assistLevel;
+    }); 
+    print("Loaded assist level: $assistLevel");
+
   }
 
   @override
@@ -314,29 +329,40 @@ class GameFormState extends GamePageState<GameForm> {
                       ),
                     ) : null,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: ElevatedButton(
-                      onPressed: _speakQuestion,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: currentProfile.buttonColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      ),
-                      child: Text(
-                        'Hear Question',
-                        style: TextStyle(color: currentProfile.textColor),
+                  if (assistLevel == null) 
+                    const SizedBox.shrink(),
+
+                  // HEAR QUESTION button:
+                  // Show for Novice + Intermediate
+                  if (assistLevel == LanguageAssistLevel.novice ||
+                      assistLevel == LanguageAssistLevel.intermediate)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: ElevatedButton(
+                        onPressed: _speakQuestion,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: currentProfile.buttonColor,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        ),
+                        child: Text(
+                          'Hear Question',
+                          style: TextStyle(color: currentProfile.textColor),
+                        ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: TranslateButtonAndText(
-                      sourceText: widget.questionLabel,
-                      colorProfile: currentProfile,
-                      speakOnTranslate: true,
-                      targetLanguage: 'es',
+
+                  // TRANSLATE BUTTON:
+                  if (assistLevel == LanguageAssistLevel.novice)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: TranslateButtonAndText(
+                        sourceText: widget.questionLabel,
+                        colorProfile: currentProfile,
+                        speakOnTranslate: true,
+                        targetLanguage: 'es',
+                      ),
                     ),
-                  ),
+
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Column(
@@ -349,6 +375,7 @@ class GameFormState extends GamePageState<GameForm> {
                       ],
                     )
                   ),
+                  
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Wrap(
