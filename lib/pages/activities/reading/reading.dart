@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:onwards/pages/components/calculator.dart';
 import 'package:onwards/pages/components/progress_bar.dart';
 import 'package:onwards/pages/components/skip.dart';
@@ -13,6 +14,7 @@ import 'package:onwards/pages/translation.dart';
 import 'package:onwards/pages/activities/game_page.dart';
 import 'package:onwards/pages/activities/reading/speech_to_text_helper.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:onwards/pages/components/lang_assist.dart';
 
 const ReadAloudGameData dummyData = ReadAloudGameData(displayedProblem: "", multiAcceptedAnswers: [], skills: []);
 
@@ -21,14 +23,16 @@ class ReadingActivityScreen extends StatelessWidget {
     super.key,
     this.colorProfile = lightFlavor,
     this.readingGameData = dummyData,
-    this.fromLevelSelect = false
+    this.fromLevelSelect = false,
+    this.langAssist,
   });
 
   final ColorProfile colorProfile;
   final ReadAloudGameData readingGameData;
   final bool fromLevelSelect;
+  final LanguageAssistLevel? langAssist;
 
-  const ReadingActivityScreen.fromLevelSelect({required ReadAloudGameData readingData, required ColorProfile profile, super.key}) :
+  const ReadingActivityScreen.fromLevelSelect({required ReadAloudGameData readingData, required ColorProfile profile, super.key, this.langAssist}) :
     colorProfile = profile,
     readingGameData = readingData,
     fromLevelSelect = true;
@@ -56,7 +60,8 @@ class ReadingActivityScreen extends StatelessWidget {
             useNumWordProtocol: randomData.useNumWordProtocol,
             colorProfile: colorProfile,
             skills: randomData.skills,
-            id: randomData.id
+            id: randomData.id,
+            langAssist: langAssist,
           ) :
           AudioTranscriptionWidget(
             key: const Key('1'),
@@ -66,7 +71,8 @@ class ReadingActivityScreen extends StatelessWidget {
             useNumWordProtocol: readingGameData.useNumWordProtocol,
             colorProfile: colorProfile,
             skills: readingGameData.skills,
-            id: readingGameData.id
+            id: readingGameData.id,
+            langAssist: langAssist,
           )
       )
     );
@@ -82,7 +88,8 @@ class AudioTranscriptionWidget extends GamePage {
     super.colorProfile,
     this.useNumWordProtocol = true,
     required this.skills,
-    required this.id
+    required this.id,
+    required this.langAssist,
   });
 
   final String questionLabel;
@@ -91,6 +98,7 @@ class AudioTranscriptionWidget extends GamePage {
   final bool useNumWordProtocol;
   final List<String> skills;
   final String id;
+  final LanguageAssistLevel? langAssist;
 
   @override
   AudioTranscriptionWidgetState createState() => AudioTranscriptionWidgetState();
@@ -102,11 +110,17 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
   String defaultTranscribedText = "Press the button to start speaking and your words will appear here!";
   String _transcribedText = "Press the button to start speaking and your words will appear here!";
   String listenNotifier = "";
+  late FlutterTts flutterTts;
+  late LanguageAssistLevel? assistLevel;
 
   @override
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
+    flutterTts = FlutterTts();
+    assistLevel = widget.langAssist;
+    logger.i("GameForm received assist level: $assistLevel");
+
   }
 
   void _listen() async {
@@ -143,6 +157,15 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
       setState(() => _isListening = false);
       _speech.stop();
     }
+  }
+
+  void _speakQuestion() async {
+    try {
+      await flutterTts.setLanguage('en-US');
+    } catch (_) {}
+    await flutterTts.setPitch(1.0);
+    await flutterTts.setSpeechRate(1.0);
+    await flutterTts.speak(widget.questionLabel);
   }
 
   bool validateAnswer() {
@@ -207,15 +230,35 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: TranslateButtonAndText(
-                    sourceText: widget.questionLabel,
-                    colorProfile: currentProfile,
-                    speakOnTranslate: false,
-                    targetLanguage: 'es',
-                  ),
-                ),
+                if (assistLevel == LanguageAssistLevel.novice ||
+                        assistLevel == LanguageAssistLevel.intermediate)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: ElevatedButton(
+                          onPressed: _speakQuestion,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: currentProfile.buttonColor,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                          ),
+                          child: Text(
+                            'Hear Question',
+                            style:
+                                TextStyle(color: currentProfile.textColor),
+                          ),
+                        ),
+                      ),
+
+                    if (assistLevel == LanguageAssistLevel.novice)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: TranslateButtonAndText(
+                          sourceText: widget.questionLabel,
+                          colorProfile: currentProfile,
+                          speakOnTranslate: true,
+                          targetLanguage: 'es',
+                        ),
+                      ),
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: Column(

@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -13,6 +12,9 @@ import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
 import 'package:onwards/pages/translation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:onwards/pages/components/lang_assist.dart';
+import 'package:onwards/pages/components/hover_translated_text.dart';
+
 
 const FillBlanksGameData dummyData = FillBlanksGameData(displayedProblem: "", multiAcceptedAnswers: [], writtenPrompt: "", blankForm: "", optionList: [], skills: []);
 
@@ -20,15 +22,17 @@ class FillInActivityScreen extends StatelessWidget {
   final FillBlanksGameData fillBlanksGameData;
   final ColorProfile colorProfile;
   final bool fromLevelSelect;
+  final LanguageAssistLevel? langAssist;
 
   const FillInActivityScreen({
     super.key,
     this.colorProfile = plainFlavor,
     this.fillBlanksGameData = dummyData,
-    this.fromLevelSelect = false
+    this.fromLevelSelect = false,
+    this.langAssist,
   });
 
-  const FillInActivityScreen.fromLevelSelect({required FillBlanksGameData fillData, required ColorProfile profile, super.key}) : 
+  const FillInActivityScreen.fromLevelSelect({required FillBlanksGameData fillData, required ColorProfile profile, super.key, this.langAssist}) : 
     colorProfile = profile,
     fillBlanksGameData = fillData,
     fromLevelSelect = true;
@@ -56,7 +60,8 @@ class FillInActivityScreen extends StatelessWidget {
             buttonOptions: randomGameData.optionList,
             colorProfile: colorProfile,
             skills: randomGameData.skills,
-            id: randomGameData.id
+            id: randomGameData.id,
+            langAssist: langAssist,
           ) :
           GameForm(
             answers: fillBlanksGameData.multiAcceptedAnswers, 
@@ -66,7 +71,8 @@ class FillInActivityScreen extends StatelessWidget {
             buttonOptions: fillBlanksGameData.optionList,
             colorProfile: colorProfile,
             skills: fillBlanksGameData.skills,
-            id: fillBlanksGameData.id
+            id: fillBlanksGameData.id,
+            langAssist: langAssist,
           )
       )
     );
@@ -87,7 +93,8 @@ class GameForm extends GamePage {
     required this.buttonOptions,
     super.colorProfile,
     required this.skills,
-    required this.id
+    required this.id,
+    required this.langAssist,
   });
 
   final String questionLabel;
@@ -97,6 +104,7 @@ class GameForm extends GamePage {
   final List<String> buttonOptions;
   final List<String> skills;
   final String id;
+  final LanguageAssistLevel? langAssist;
 
   @override
   GameFormState createState() => GameFormState();
@@ -108,12 +116,15 @@ class GameFormState extends GamePageState<GameForm> {
   int maxSelection = 0;
   int currentCount = 0;
   late FlutterTts flutterTts;
+  late LanguageAssistLevel? assistLevel;
 
   @override
   void initState() {
     super.initState();
     maxSelection = widget.maxSelectedAnswers;
     flutterTts = FlutterTts();
+    assistLevel = widget.langAssist;
+    logger.i("GameForm received assist level: $assistLevel");
   }
 
   @override
@@ -276,38 +287,52 @@ class GameFormState extends GamePageState<GameForm> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8),
-                  child: Text(
-                    widget.questionLabel,
-                    style: TextStyle(
-                      color: currentProfile.textColor, 
-                      fontSize: 30,
-                      
-                    ),
-                  ),
+                  child: widget.questionLabel.isNotEmpty
+                    ? (assistLevel == LanguageAssistLevel.novice
+                        ? ClickableTranslatedText(
+                            text: widget.questionLabel,
+                            colorProfile: currentProfile,
+                            assistLevel: assistLevel,
+                          )
+                        : Text(
+                            widget.questionLabel,
+                            style: TextStyle(
+                              color: currentProfile.textColor,
+                              fontSize: 30,
+                            ),
+                            textAlign: TextAlign.center,
+                          ))
+                    : null,
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: ElevatedButton(
-                    onPressed: _speakQuestion,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: currentProfile.buttonColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                    child: Text(
-                      'Hear Question',
-                      style: TextStyle(color: currentProfile.textColor),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: TranslateButtonAndText(
-                    sourceText: widget.questionLabel,
-                    colorProfile: currentProfile,
-                    speakOnTranslate: false,
-                    targetLanguage: 'es',
-                  ),
-                ),
+                if (assistLevel == LanguageAssistLevel.novice ||
+                        assistLevel == LanguageAssistLevel.intermediate)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: ElevatedButton(
+                          onPressed: _speakQuestion,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: currentProfile.buttonColor,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                          ),
+                          child: Text(
+                            'Hear Question',
+                            style:
+                                TextStyle(color: currentProfile.textColor),
+                          ),
+                        ),
+                      ),
+
+                    if (assistLevel == LanguageAssistLevel.novice)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: TranslateButtonAndText(
+                          sourceText: widget.questionLabel,
+                          colorProfile: currentProfile,
+                          speakOnTranslate: true,
+                          targetLanguage: 'es',
+                        ),
+                      ),
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: Column( // attempt to render the selected answers as they are moved into the list

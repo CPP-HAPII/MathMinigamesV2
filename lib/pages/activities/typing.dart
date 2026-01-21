@@ -9,6 +9,9 @@ import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
 import 'package:onwards/pages/translation.dart';
+import 'package:onwards/pages/components/lang_assist.dart';
+import 'package:onwards/pages/components/hover_translated_text.dart';
+
 
 const TypingGameData dummyData = TypingGameData(
     displayedProblem: "", multiAcceptedAnswers: ["", ""], skills: []);
@@ -17,19 +20,22 @@ class TypeActivityScreen extends StatelessWidget {
   final ColorProfile colorProfile;
   final TypingGameData typingGameData;
   final bool fromLevelSelect;
+  final LanguageAssistLevel? langAssist;
 
   /// The default constructor that doesn't ask for the gameData.
   const TypeActivityScreen(
       {super.key,
       this.colorProfile = lightFlavor,
       this.typingGameData = dummyData,
-      this.fromLevelSelect = false});
+      this.fromLevelSelect = false,
+      this.langAssist,});
 
   /// Using this constructor allows a gameData to be passed instead of randomly picked from the bank
   const TypeActivityScreen.fromLevelSelect(
       {required ColorProfile profile,
       required TypingGameData typingData,
-      super.key})
+      super.key,
+      this.langAssist})
       : colorProfile = profile,
         typingGameData = typingData,
         fromLevelSelect = true;
@@ -58,6 +64,7 @@ class TypeActivityScreen extends StatelessWidget {
                     colorProfile: colorProfile,
                     skills: randomGameData.skills,
                     id: randomGameData.id,
+                    langAssist: langAssist,
                   )
                 : GameForm(
                     // Using the passed gameData
@@ -67,6 +74,7 @@ class TypeActivityScreen extends StatelessWidget {
                     colorProfile: colorProfile,
                     skills: typingGameData.skills,
                     id: typingGameData.id,
+                    langAssist: langAssist,
                   )));
   }
 }
@@ -83,7 +91,9 @@ class GameForm extends GamePage {
       required this.questionLabel,
       required this.instructions,
       required this.skills,
-      required this.id});
+      required this.id,
+      required this.langAssist
+      });
 
   final String questionLabel;
   final List<String> answers;
@@ -91,6 +101,8 @@ class GameForm extends GamePage {
   final count = 0;
   final List<String> skills;
   final String id;
+  final LanguageAssistLevel? langAssist;
+
 
   @override
   State<GameForm> createState() => _GameFormState();
@@ -100,6 +112,7 @@ class _GameFormState extends GamePageState<GameForm> {
   // data for cache
   final _answerFieldController = TextEditingController();
   late FlutterTts flutterTts;
+  late LanguageAssistLevel? assistLevel;
 
   // data for database
   bool lastCorrectState = false;
@@ -108,6 +121,8 @@ class _GameFormState extends GamePageState<GameForm> {
   void initState() {
     super.initState();
     flutterTts = FlutterTts();
+    assistLevel = widget.langAssist;
+    logger.i("GameForm received assist level: $assistLevel");
   }
 
   @override
@@ -156,14 +171,16 @@ class _GameFormState extends GamePageState<GameForm> {
     bool valid;
 
     return Container(
-        decoration: currentProfile.backBoxDecoration,
-        child: Stack(
-          children: [
-            addConfettiBlasters(),
-            SingleChildScrollView(
+      decoration: currentProfile.backBoxDecoration,
+      child: Stack(
+        children: [
+          addConfettiBlasters(),
+          SingleChildScrollView(
+            child: Center( 
               child: Form(
                 key: const Key("_formKey"),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                     Text(
@@ -176,91 +193,118 @@ class _GameFormState extends GamePageState<GameForm> {
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8),
-                      child: Text(
-                        widget.questionLabel,
-                        style: TextStyle(
-                          color: currentProfile.textColor,
-                          fontSize: 30,
+                      child: widget.questionLabel.isNotEmpty
+                      ? (assistLevel == LanguageAssistLevel.novice
+                          ? ClickableTranslatedText(
+                              text: widget.questionLabel,
+                              colorProfile: currentProfile,
+                              assistLevel: assistLevel,
+                            )
+                          : Text(
+                              widget.questionLabel,
+                              style: TextStyle(
+                                color: currentProfile.textColor,
+                                fontSize: 30,
+                              ),
+                              textAlign: TextAlign.center,
+                            ))
+                      : null,
+                    ),
+
+                    if (assistLevel == LanguageAssistLevel.novice ||
+                        assistLevel == LanguageAssistLevel.intermediate)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: ElevatedButton(
+                          onPressed: _speakQuestion,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: currentProfile.buttonColor,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                          ),
+                          child: Text(
+                            'Hear Question',
+                            style:
+                                TextStyle(color: currentProfile.textColor),
+                          ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: ElevatedButton(
-                        onPressed: _speakQuestion,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: currentProfile.buttonColor,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        ),
-                        child: Text(
-                          'Hear Question',
-                          style: TextStyle(color: currentProfile.textColor),
+
+                    if (assistLevel == LanguageAssistLevel.novice)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: TranslateButtonAndText(
+                          sourceText: widget.questionLabel,
+                          colorProfile: currentProfile,
+                          speakOnTranslate: true,
+                          targetLanguage: 'es',
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: TranslateButtonAndText(
-                        sourceText: widget.questionLabel,
-                        colorProfile: currentProfile,
-                        speakOnTranslate: false,
-                        targetLanguage: 'es',
-                      ),
-                    ),
-                    SizedBox(
-                        width: 500.0,
+
+                    Align(
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                        width: 500,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: TextFormField(
-                              maxLines: 3,
-                              controller: _answerFieldController,
-                              decoration: InputDecoration(
-                                hintText: 'Type your answer...',
-                                labelText: 'Your Answer',
-                                filled: true,
-                                hintStyle: TextStyle(
-                                    color: currentProfile.textColor,
-                                    fontSize: 18),
-                                fillColor: Colors.grey,
-                                labelStyle: TextStyle(
-                                    color: currentProfile.textColor,
-                                    fontSize: 18),
-                                border: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(10.0))),
+                            maxLines: 3,
+                            controller: _answerFieldController,
+                            decoration: InputDecoration(
+                              hintText: 'Type your answer...',
+                              labelText: 'Your Answer',
+                              filled: true,
+                              hintStyle: TextStyle(
+                                color: currentProfile.textColor,
+                                fontSize: 18,
                               ),
-                              onFieldSubmitted: (value) {
-                                showGameOverlay(-1);
-                              }),
-                        )),
-                    TextButton(
-                        onPressed: () => {
-                              // note: validate should be called once to avoid inconsistencies
-                              valid = validateAnswer(),
-                              isCorrect = valid,
-                              if (valid)
-                                {showGameOverlay(-1)}
-                              else
-                                {showCorrectDialog(valid, currentProfile, -1)}
+                              fillColor: Colors.grey,
+                              labelStyle: TextStyle(
+                                color: currentProfile.textColor,
+                                fontSize: 18,
+                              ),
+                              border: const OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(10)),
+                              ),
+                            ),
+                            onFieldSubmitted: (_) {
+                              showGameOverlay(-1);
                             },
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll(
-                              currentProfile.checkAnswerButtonColor),
+                          ),
                         ),
-                        child: Text(
-                          'Check Answer',
-                          style: TextStyle(
-                              color: currentProfile.contrastTextColor),
-                        ))
+                      ),
+                    ),
+
+                    TextButton(
+                      onPressed: () {
+                        valid = validateAnswer();
+                        isCorrect = valid;
+                        valid
+                            ? showGameOverlay(-1)
+                            : showCorrectDialog(valid, currentProfile, -1);
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStatePropertyAll(
+                            currentProfile.checkAnswerButtonColor),
+                      ),
+                      child: Text(
+                        'Check Answer',
+                        style: TextStyle(
+                            color: currentProfile.contrastTextColor),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-            const Align(
-              alignment: Alignment.bottomCenter,
-              child: ProgressBar(),
-            )
-          ],
-        ));
+          ),
+          const Align(
+            alignment: Alignment.bottomCenter,
+            child: ProgressBar(),
+          ),
+        ],
+      ),
+    );
   }
 }

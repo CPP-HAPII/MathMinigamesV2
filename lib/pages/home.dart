@@ -112,6 +112,7 @@ class HomePageState extends State<HomePage> {
   int selected = 0;
 
   SequenceData? currentSequence;
+  LanguageAssistLevel? currentLangAssist;
 
   final maxThemes = 6;
 
@@ -166,11 +167,11 @@ class HomePageState extends State<HomePage> {
     if (index < 0 || index >= levels.length) return;
 
     final prefs = await _prefs;
-
     await prefs.setInt('lang_assist_level', index);
 
     setState(() {
       selected = index;
+      currentLangAssist = levels[index]; // update langAssist value
     });
 
     logger.i('Language Assist level set to ${levels[index].label}');
@@ -180,6 +181,7 @@ class HomePageState extends State<HomePage> {
     final saved = await AssistLevelService.load();
     setState(() {
       selected = saved.index;
+      currentLangAssist = saved;
     });
   }
 
@@ -297,19 +299,19 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     List<Widget> gameCards = <Widget> [
-      // TODO: Add image asset for Play Game mode
       GameCard(
         imageAsset: const AssetImage(
           'assets/images/play_mode.png'
         ),
         gameRoute: '/play-mode', 
-        gameWidget: SeriesHomePage(colorProfile: currentProfile, difficultyType: DifficultyType.easy, sequenceData: currentSequence),
+        gameWidget: SeriesHomePage(colorProfile: currentProfile, difficultyType: DifficultyType.easy, sequenceData: currentSequence, langAssist: levels[selected],),
         keyId: 5,
         title: "Play Mode",
         subtitle: "A series of questions based off the sequence.",
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
         sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
+        langAssist: currentLangAssist,
       ),
       GameCard(
         imageAsset: const AssetImage(
@@ -323,6 +325,7 @@ class HomePageState extends State<HomePage> {
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
         sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
+        langAssist: currentLangAssist,
       )
     ];
 
@@ -836,6 +839,7 @@ class GameCard extends StatelessWidget {
     required this.styleMode,
     this.colorProfile = plainFlavor,
     required this.sequenceData,
+    this.langAssist,
   });
 
   final Widget gameWidget;
@@ -847,6 +851,7 @@ class GameCard extends StatelessWidget {
   final TextStyle? styleMode;
   final ColorProfile colorProfile;
   final SequenceData sequenceData;
+  final LanguageAssistLevel? langAssist;
   
   final desktopMargin = 8.0;
   final minHeight = 240.0;

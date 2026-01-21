@@ -1,8 +1,10 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:onwards/pages/activities/game_page.dart';
 import 'package:onwards/pages/activities/jumble.dart';
 import 'package:onwards/pages/components/calculator.dart';
+import 'package:onwards/pages/components/lang_assist.dart';
 import 'package:onwards/pages/components/progress_bar.dart';
 import 'package:onwards/pages/components/skip.dart';
 import 'package:onwards/pages/constants.dart';
@@ -18,15 +20,17 @@ class PlaybackActivityScreen extends StatelessWidget {
   final ColorProfile colorProfile;
   final PlaybackGameData playbackGameData;
   final bool fromLevelSelect;
+  final LanguageAssistLevel? langAssist;
 
   const PlaybackActivityScreen({
     super.key,
     this.colorProfile = lightFlavor,
     this.playbackGameData = dummyData,
-    this.fromLevelSelect = false
+    this.fromLevelSelect = false,
+    this.langAssist,
   });
 
-  const PlaybackActivityScreen.fromLevelSelect({super.key, required PlaybackGameData gameData, required ColorProfile profile}) :
+  const PlaybackActivityScreen.fromLevelSelect({super.key, required PlaybackGameData gameData, required ColorProfile profile, this.langAssist}) :
     colorProfile = profile,
     playbackGameData = gameData,
     fromLevelSelect = true;
@@ -55,7 +59,8 @@ class PlaybackActivityScreen extends StatelessWidget {
             showArithmitic: true,
             colorProfile: colorProfile,
             skills: randomData.skills,
-            id: randomData.id
+            id: randomData.id,
+            langAssist: langAssist,
           ) :
           PlaybackGameForm(
             audioSource: AssetSource(playbackGameData.webAudioLink),
@@ -67,7 +72,8 @@ class PlaybackActivityScreen extends StatelessWidget {
             showArithmitic: true,
             colorProfile: colorProfile,
             skills: playbackGameData.skills,
-            id: playbackGameData.id
+            id: playbackGameData.id,
+            langAssist: langAssist,
           ),
       )
     );
@@ -90,7 +96,8 @@ class PlaybackGameForm extends GamePage {
     super.colorProfile,
     required this.audioSource,
     required this.skills,
-    required this.id
+    required this.id,
+    required this.langAssist
   });
 
   final AssetSource audioSource;
@@ -106,6 +113,7 @@ class PlaybackGameForm extends GamePage {
   final bool showArithmitic;
   final List<String> skills;
   final String id;
+  final LanguageAssistLevel? langAssist;
 
   @override
   PlaybackGameFormState createState() => PlaybackGameFormState();
@@ -116,11 +124,16 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
   final List<String> _selectedAnswers = [];
   int maxSelection = 0;
   int currentCount = 0;
+  late FlutterTts flutterTts;
+  late LanguageAssistLevel? assistLevel;
 
   @override
   void initState() {
     super.initState();
     maxSelection = widget.maxSelectedAnswers;
+    flutterTts = FlutterTts();
+    assistLevel = widget.langAssist;
+    logger.i("GameForm received assist level: $assistLevel");
   }
 
   @override
@@ -170,6 +183,15 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
       logger.d("Cleared answer selection");
       _selectedAnswers.clear();
     });
+  }
+
+  void _speakQuestion() async {
+    try {
+      await flutterTts.setLanguage('en-US');
+    } catch (_) {}
+    await flutterTts.setPitch(1.0);
+    await flutterTts.setSpeechRate(1.0);
+    await flutterTts.speak(widget.questionLabel);
   }
 
   // create a list of widgets that represents the selected button choices
@@ -240,15 +262,36 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                       textAlign: TextAlign.center,
                   ),
                   TTSRunner(voiceLine: widget.questionLabel),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: TranslateButtonAndText(
-                      sourceText: widget.questionLabel,
-                      colorProfile: currentProfile,
-                      speakOnTranslate: true,
-                      targetLanguage: 'es',
+                  // HEAR QUESTION button:
+                  // Show for Novice + Intermediate
+                  if (assistLevel == LanguageAssistLevel.novice ||
+                      assistLevel == LanguageAssistLevel.intermediate)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: ElevatedButton(
+                        onPressed: _speakQuestion,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: currentProfile.buttonColor,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        ),
+                        child: Text(
+                          'Hear Question',
+                          style: TextStyle(color: currentProfile.textColor),
+                        ),
+                      ),
                     ),
-                  ),
+
+                  // TRANSLATE BUTTON:
+                  if (assistLevel == LanguageAssistLevel.novice)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: TranslateButtonAndText(
+                        sourceText: widget.questionLabel,
+                        colorProfile: currentProfile,
+                        speakOnTranslate: true,
+                        targetLanguage: 'es',
+                      ),
+                    ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Column( 

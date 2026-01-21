@@ -28,11 +28,13 @@ class GameTestPage extends StatelessWidget {
     required this.colorProfile,
     this.difficultyType = DifficultyType.random,
     required this.sequenceData,
+    this.langAssist,
   });
 
   final ColorProfile colorProfile;
   final DifficultyType difficultyType;
   final SequenceData sequenceData;
+  final LanguageAssistLevel? langAssist;
   @override
   Widget build(BuildContext context) {
     logger.i("The number of questions for the games are as follows: Playback: ${gameDataBank.playbackBank.length}, Reading: ${gameDataBank.readingBank.length}, Fill-in-the-Blank: ${gameDataBank.fillBlanksBank.length}, Jumble: ${gameDataBank.jumbleBank.length}, Typing: ${gameDataBank.typingBank.length}");
@@ -79,6 +81,7 @@ class SeriesHomePage extends StatefulWidget {
   final ColorProfile colorProfile;
   final DifficultyType difficultyType;
   final SequenceData? sequenceData;
+  final LanguageAssistLevel? langAssist;
 
   const SeriesHomePage({
     super.key, 
@@ -86,6 +89,7 @@ class SeriesHomePage extends StatefulWidget {
     required this.colorProfile,
     required this.difficultyType,
     this.sequenceData,
+    this.langAssist,
   });
   
   @override
@@ -112,7 +116,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
   double progressForBar = 0.0;
   int currentScore = 0;
   bool isHighScoreUpdated = false;
-  LanguageAssistLevel? assistLevel;
+  LanguageAssistLevel? langAssist;
 
 
   // Data for database. These are the sequence start times
@@ -236,29 +240,29 @@ class SeriesHomePageState extends State<SeriesHomePage> {
     for (GameData gameData in questions) {
           if (gameData is PlaybackGameData) {
             PlaybackGameData playbackGameData = gameData;
-            PlaybackActivityScreen playbackGame = PlaybackActivityScreen.fromLevelSelect(profile: widget.colorProfile, gameData: playbackGameData,);
+            PlaybackActivityScreen playbackGame = PlaybackActivityScreen.fromLevelSelect(profile: widget.colorProfile, gameData: playbackGameData, langAssist: widget.langAssist, );
             fixedPageOrderList.add(playbackGame);
           }
 
           if (gameData is ReadAloudGameData) {
             ReadAloudGameData readAloudGameData = gameData;
-            ReadingActivityScreen readingGame = ReadingActivityScreen.fromLevelSelect(readingData: readAloudGameData, profile: widget.colorProfile,);
+            ReadingActivityScreen readingGame = ReadingActivityScreen.fromLevelSelect(readingData: readAloudGameData, profile: widget.colorProfile, langAssist: widget.langAssist, );
             fixedPageOrderList.add(readingGame);
           }
 
           if (gameData is JumbleGameData) {
-            JumbleActivityScreen jumbleGame = JumbleActivityScreen.fromLevelSelect(jumbleData: gameData, profile: widget.colorProfile,);
+            JumbleActivityScreen jumbleGame = JumbleActivityScreen.fromLevelSelect(jumbleData: gameData, profile: widget.colorProfile, langAssist: widget.langAssist, );
             fixedPageOrderList.add(jumbleGame);
           }
 
           if (gameData is FillBlanksGameData) {
-            FillInActivityScreen fillGame = FillInActivityScreen.fromLevelSelect(fillData: gameData, profile: widget.colorProfile,);
+            FillInActivityScreen fillGame = FillInActivityScreen.fromLevelSelect(fillData: gameData, profile: widget.colorProfile, langAssist: widget.langAssist, );
             fixedPageOrderList.add(fillGame);
           }
 
           if (gameData is TypingGameData) {
             TypingGameData typingGameData = gameData;
-            TypeActivityScreen typingGame = TypeActivityScreen.fromLevelSelect(profile: widget.colorProfile, typingData: typingGameData);
+            TypeActivityScreen typingGame = TypeActivityScreen.fromLevelSelect(profile: widget.colorProfile, typingData: typingGameData, langAssist: widget.langAssist, );
             fixedPageOrderList.add(typingGame);
           }
       }
@@ -370,11 +374,11 @@ class SeriesHomePageState extends State<SeriesHomePage> {
     logger.d("This GameTest has a profile of: ${widget.colorProfile.idKey}");
     // Add the page types to the page list to pick from
     pageTypesList.addAll(List.of([
-      FillInActivityScreen(colorProfile: widget.colorProfile),
-      JumbleActivityScreen(colorProfile: widget.colorProfile),
-      PlaybackActivityScreen(colorProfile: widget.colorProfile),
-      ReadingActivityScreen(colorProfile: widget.colorProfile),
-      TypeActivityScreen(colorProfile: widget.colorProfile)
+      FillInActivityScreen(colorProfile: widget.colorProfile, langAssist: widget.langAssist),
+      JumbleActivityScreen(colorProfile: widget.colorProfile, langAssist: widget.langAssist),
+      PlaybackActivityScreen(colorProfile: widget.colorProfile, langAssist: widget.langAssist),
+      ReadingActivityScreen(colorProfile: widget.colorProfile, langAssist: widget.langAssist),
+      TypeActivityScreen(colorProfile: widget.colorProfile, langAssist: widget.langAssist)
     ]));
 
     String buttonLabel = "Play Game";

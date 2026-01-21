@@ -12,6 +12,7 @@ import 'package:onwards/pages/score_display.dart';
 import 'package:onwards/pages/translation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onwards/pages/components/lang_assist.dart';
+import 'package:onwards/pages/components/hover_translated_text.dart';
 
 
 import '../constants.dart';
@@ -22,15 +23,17 @@ class JumbleActivityScreen extends StatelessWidget {
   final JumbleGameData jumbleGameData;
   final ColorProfile colorProfile;
   final bool fromLevelSelect;
+  final LanguageAssistLevel? langAssist;
 
   const JumbleActivityScreen({
     super.key,
     this.colorProfile = lightFlavor,
     this.jumbleGameData = dummyData,
-    this.fromLevelSelect = false
+    this.fromLevelSelect = false,
+    this.langAssist,
   });
 
-  const JumbleActivityScreen.fromLevelSelect({required JumbleGameData jumbleData, required ColorProfile profile, super.key}) :
+  const JumbleActivityScreen.fromLevelSelect({required JumbleGameData jumbleData, required ColorProfile profile, super.key, this.langAssist}) :
     colorProfile = profile,
     jumbleGameData = jumbleData,
     fromLevelSelect = true;
@@ -62,6 +65,7 @@ class JumbleActivityScreen extends StatelessWidget {
             skills: randomGameData.skills,
             scoreValue: randomGameData.score,
             id: randomGameData.id,
+            langAssist: langAssist,
           ) :
           GameForm(
             // using the passed gameData
@@ -75,6 +79,7 @@ class JumbleActivityScreen extends StatelessWidget {
             skills: jumbleGameData.skills,
             scoreValue: jumbleGameData.score,
             id: jumbleGameData.id,
+            langAssist: langAssist,
           )
         )
     );
@@ -97,7 +102,8 @@ class GameForm extends GamePage {
     required this.showArithmitic,
     required this.skills,
     required this.scoreValue,
-    required this.id
+    required this.id,
+    required this.langAssist
   });
 
   /// The label for the question, which should be the math form for this game
@@ -113,6 +119,7 @@ class GameForm extends GamePage {
   final List<String> skills;
   final int scoreValue;
   final String id;
+  final LanguageAssistLevel? langAssist;
 
   @override
   GameFormState createState() => GameFormState();
@@ -132,18 +139,11 @@ class GameFormState extends GamePageState<GameForm> {
     super.initState();
     maxSelection = widget.maxSelectedAnswers;
     flutterTts = FlutterTts();
-    loadAssist();
+
+    assistLevel = widget.langAssist;
+    logger.i("GameForm received assist level: $assistLevel");
   }
 
-  Future<void> loadAssist() async {
-
-    assistLevel = await AssistLevelService.load();
-    setState(() {
-        assistLevel = assistLevel;
-    }); 
-    print("Loaded assist level: $assistLevel");
-
-  }
 
   @override
   void dispose() {
@@ -320,14 +320,22 @@ class GameFormState extends GamePageState<GameForm> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8),
-                    child: widget.showArithmitic ? Text(
-                      widget.questionLabel,
-                      style: TextStyle(
-                        color: currentProfile.textColor, 
-                        fontSize: 30,
-                        
-                      ),
-                    ) : null,
+                    child: widget.showArithmitic
+                    ? (assistLevel == LanguageAssistLevel.novice
+                        ? ClickableTranslatedText(
+                            text: widget.questionLabel,
+                            colorProfile: currentProfile,
+                            assistLevel: assistLevel,
+                          )
+                        : Text(
+                            widget.questionLabel,
+                            style: TextStyle(
+                              color: currentProfile.textColor,
+                              fontSize: 30,
+                            ),
+                            textAlign: TextAlign.center,
+                          ))
+                    : null,
                   ),
                   if (assistLevel == null) 
                     const SizedBox.shrink(),
