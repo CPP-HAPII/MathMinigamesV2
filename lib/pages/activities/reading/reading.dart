@@ -15,6 +15,7 @@ import 'package:onwards/pages/activities/game_page.dart';
 import 'package:onwards/pages/activities/reading/speech_to_text_helper.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:onwards/pages/components/lang_assist.dart';
+import 'package:onwards/pages/components/hover_translated_text.dart';
 
 const ReadAloudGameData dummyData = ReadAloudGameData(displayedProblem: "", multiAcceptedAnswers: [], skills: []);
 
@@ -220,18 +221,17 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
                   ),
                   textAlign: TextAlign.center,
                 ),
+
                 Padding(
                   padding: const EdgeInsets.all(8),
-                  child: Text(
-                    widget.questionLabel,
-                    style: TextStyle(
-                      color: currentProfile.textColor, 
-                      fontSize: 30,
-                    ),
+                  child: ClickableTranslatedText(
+                    text: widget.questionLabel,
+                    colorProfile: currentProfile,
+                    assistLevel: assistLevel,
                   ),
                 ),
-                if (assistLevel == LanguageAssistLevel.novice ||
-                        assistLevel == LanguageAssistLevel.intermediate)
+
+                if (assistLevel == LanguageAssistLevel.novice)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: ElevatedButton(
@@ -249,7 +249,8 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
                         ),
                       ),
 
-                    if (assistLevel == LanguageAssistLevel.novice)
+                    if (assistLevel == LanguageAssistLevel.novice ||
+                        assistLevel == LanguageAssistLevel.intermediate)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: TranslateButtonAndText(

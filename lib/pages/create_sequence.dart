@@ -24,7 +24,6 @@ class _CustomSequencePageState extends State<CustomSequencePage> {
   final Set<Difficulty> _selectedDifficulties = <Difficulty>{};
   bool isRandomSequence = false;
 
-  // TODO: implement:
 
   Future<void> _onSave() async {
     final seqName = _nameController.text.trim();

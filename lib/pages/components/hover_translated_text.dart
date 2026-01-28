@@ -46,16 +46,6 @@ class _ClickableTranslatedTextState extends State<ClickableTranslatedText> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.assistLevel != LanguageAssistLevel.novice) {
-      return Text(
-        widget.text,
-        style: TextStyle(
-          color: widget.colorProfile.textColor,
-          fontSize: 30,
-        ),
-        textAlign: TextAlign.center,
-      );
-    }
 
     final tokens = RegExp(r'\S+|\s+')
         .allMatches(widget.text)

@@ -320,30 +320,16 @@ class GameFormState extends GamePageState<GameForm> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8),
-                    child: widget.showArithmitic
-                    ? (assistLevel == LanguageAssistLevel.novice
-                        ? ClickableTranslatedText(
-                            text: widget.questionLabel,
-                            colorProfile: currentProfile,
-                            assistLevel: assistLevel,
-                          )
-                        : Text(
-                            widget.questionLabel,
-                            style: TextStyle(
-                              color: currentProfile.textColor,
-                              fontSize: 30,
-                            ),
-                            textAlign: TextAlign.center,
-                          ))
-                    : null,
+                    child: ClickableTranslatedText(
+                      text: widget.questionLabel,
+                      colorProfile: currentProfile,
+                      assistLevel: assistLevel,
+                    ),
                   ),
-                  if (assistLevel == null) 
-                    const SizedBox.shrink(),
 
                   // HEAR QUESTION button:
-                  // Show for Novice + Intermediate
-                  if (assistLevel == LanguageAssistLevel.novice ||
-                      assistLevel == LanguageAssistLevel.intermediate)
+                  // Show for Novice
+                  if (assistLevel == LanguageAssistLevel.novice)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: ElevatedButton(
@@ -360,7 +346,8 @@ class GameFormState extends GamePageState<GameForm> {
                     ),
 
                   // TRANSLATE BUTTON:
-                  if (assistLevel == LanguageAssistLevel.novice)
+                  if (assistLevel == LanguageAssistLevel.novice ||
+                    assistLevel == LanguageAssistLevel.intermediate)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TranslateButtonAndText(
@@ -368,6 +355,7 @@ class GameFormState extends GamePageState<GameForm> {
                         colorProfile: currentProfile,
                         speakOnTranslate: true,
                         targetLanguage: 'es',
+                        autoTranslate: assistLevel == LanguageAssistLevel.novice,
                       ),
                     ),
 

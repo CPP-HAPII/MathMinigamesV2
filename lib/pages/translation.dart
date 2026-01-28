@@ -10,12 +10,14 @@ class TranslateButtonAndText extends StatefulWidget {
     this.colorProfile = lightFlavor,
     this.speakOnTranslate = false,
     this.targetLanguage = 'es',
+    this.autoTranslate = false,
   });
 
   final String sourceText;
   final ColorProfile colorProfile;
   final bool speakOnTranslate;
   final String targetLanguage;
+  final bool autoTranslate;
 
   @override
   State<TranslateButtonAndText> createState() => _TranslateButtonAndTextState();
@@ -26,6 +28,17 @@ class _TranslateButtonAndTextState extends State<TranslateButtonAndText> {
   final FlutterTts _flutterTts = FlutterTts();
   String? _translation;
   bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.autoTranslate) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _doTranslate();
+      });
+    }
+  }
 
   Future<void> _doTranslate() async {
     if (_loading) return;

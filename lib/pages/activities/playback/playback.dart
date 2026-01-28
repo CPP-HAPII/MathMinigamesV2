@@ -263,9 +263,8 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                   ),
                   TTSRunner(voiceLine: widget.questionLabel),
                   // HEAR QUESTION button:
-                  // Show for Novice + Intermediate
-                  if (assistLevel == LanguageAssistLevel.novice ||
-                      assistLevel == LanguageAssistLevel.intermediate)
+                  // Show for Novice
+                  if (assistLevel == LanguageAssistLevel.novice )
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: ElevatedButton(
@@ -282,7 +281,8 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                     ),
 
                   // TRANSLATE BUTTON:
-                  if (assistLevel == LanguageAssistLevel.novice)
+                  if (assistLevel == LanguageAssistLevel.novice ||
+                    assistLevel == LanguageAssistLevel.intermediate)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TranslateButtonAndText(

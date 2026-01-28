@@ -287,25 +287,13 @@ class GameFormState extends GamePageState<GameForm> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8),
-                  child: widget.questionLabel.isNotEmpty
-                    ? (assistLevel == LanguageAssistLevel.novice
-                        ? ClickableTranslatedText(
-                            text: widget.questionLabel,
-                            colorProfile: currentProfile,
-                            assistLevel: assistLevel,
-                          )
-                        : Text(
-                            widget.questionLabel,
-                            style: TextStyle(
-                              color: currentProfile.textColor,
-                              fontSize: 30,
-                            ),
-                            textAlign: TextAlign.center,
-                          ))
-                    : null,
+                  child: ClickableTranslatedText(
+                    text: widget.questionLabel,
+                    colorProfile: currentProfile,
+                    assistLevel: assistLevel,
+                  ),
                 ),
-                if (assistLevel == LanguageAssistLevel.novice ||
-                        assistLevel == LanguageAssistLevel.intermediate)
+                if (assistLevel == LanguageAssistLevel.novice)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: ElevatedButton(
@@ -323,7 +311,8 @@ class GameFormState extends GamePageState<GameForm> {
                         ),
                       ),
 
-                    if (assistLevel == LanguageAssistLevel.novice)
+                    if (assistLevel == LanguageAssistLevel.novice ||
+                    assistLevel == LanguageAssistLevel.intermediate)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: TranslateButtonAndText(
