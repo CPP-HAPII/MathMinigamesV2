@@ -160,9 +160,16 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
                       return 'Read Aloud';
                   }
                 }();
-                return FilterChip(
-                  label: Text(label),
+                return ChoiceChip(
+                  label: Text(label,
+                      style: TextStyle(
+                      color: _selectedGameType == gt ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   selected: _selectedGameType == gt,
+                  selectedColor: Colors.blue,
+                  backgroundColor: Colors.grey.shade300,
                   onSelected: (selected) {
                     setState(() {
                       _selectedGameType = selected ? gt : null;
@@ -212,7 +219,7 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Option List (comma-separated)',
-                  hintText: 'she, eight, five, forty, thirty-two',
+                  hintText: 'She, eight, five, forty, is, old, years',
                 ),
               ),
 
