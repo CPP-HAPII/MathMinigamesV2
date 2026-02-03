@@ -4,7 +4,7 @@ import 'package:onwards/pages/game_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum QuestionGameType { jumble, playback, typing, fillBlanks, readAloud }
-enum Difficulty { easy, medium, hard }
+enum Difficulty { Easy, Medium, Hard }
 
 class CustomQuestionPage extends StatefulWidget {
   const CustomQuestionPage({super.key});
@@ -20,51 +20,84 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
   final TextEditingController _skillsController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
 
+  // Playback specific controllers
+  final TextEditingController _audioTranscriptController = TextEditingController();
+  final TextEditingController _webAudioLinkController = TextEditingController();
+  final TextEditingController _writtenPromptController = TextEditingController();
+
   QuestionGameType? _selectedGameType;
-  Difficulty _selectedDifficulty = Difficulty.easy;
+  Difficulty _selectedDifficulty = Difficulty.Easy;
 
   Future<void> _onSave() async {
-    if (_selectedGameType != QuestionGameType.jumble) return;
+    if (_selectedGameType == null) return;
 
     final docRef =
         FirebaseFirestore.instance.collection('gameData').doc('questions');
 
+    // Shared fields
     final optionList = _optionListController.text
-      .split(',')
-      .map((e) => e.trim())
-      .where((e) => e.isNotEmpty)
-      .toList();
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
 
     final acceptedAnswers = _acceptedAnswersController.text
-      .split(' ')
-      .map((e) => e.trim())
-      .where((e) => e.isNotEmpty)
-      .toList();
+        .split(' ')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
 
     final skills = _skillsController.text
-      .split(',')
-      .map((e) => e.trim())
-      .where((e) => e.isNotEmpty)
-      .toList();
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
 
     final tags = _tagsController.text
-      .split(',')
-      .map((e) => e.trim())
-      .where((e) => e.isNotEmpty)
-      .toList();
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
 
-    final question = {
-      'id': FirebaseFirestore.instance.collection('_').doc().id,
-      'type': 'jumble',
-      'displayedProblem': _displayProblemController.text.trim(),
-      'writtenPrompt': _displayProblemController.text.trim(),
-      'optionList': optionList,
-      'multiAcceptedAnswers': acceptedAnswers,
-      'skills': skills,
-      'tags': tags,
-      'difficulty': _selectedDifficulty.name,
-      'score': 10,
-    };
+    // Base fields
+    final String id =
+        FirebaseFirestore.instance.collection('_').doc().id;
+
+    late final Map<String, dynamic> question;
+
+    // JUMBLE
+    if (_selectedGameType == QuestionGameType.jumble) {
+      question = {
+        'id': id,
+        'gameType': 'Jumble',
+        'type': 'JumbleGameData',
+        'displayedProblem': _displayProblemController.text.trim(),
+        'writtenPrompt': _displayProblemController.text.trim(),
+        'optionList': optionList,
+        'multiAcceptedAnswers': acceptedAnswers,
+        'skills': skills,
+        'tags': tags,
+        'difficulty': _selectedDifficulty.name,
+        'score': 10,
+      };
+    }
+
+    //  PLAYBACK 
+    else if (_selectedGameType == QuestionGameType.playback) {
+      question = {
+        'id': id,
+        'gameType': 'Playback',
+        'type': 'PlaybackGameData',
+        'audioTranscript': _audioTranscriptController.text.trim(),
+        'webAudioLink': _webAudioLinkController.text.trim(),
+        'writtenPrompt': _writtenPromptController.text.trim(),
+        'optionList': optionList,
+        'multiAcceptedAnswers': acceptedAnswers,
+        'skills': skills,
+        'tags': tags,
+        'difficulty': _selectedDifficulty.name,
+      };
+    }
 
     try {
       await docRef.set(
@@ -87,7 +120,8 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
         );
       }
     }
-}
+  }
+
   Widget _buildDifficultySelector() {
     return Wrap(
       spacing: 10,
@@ -186,6 +220,7 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
 
             _buildDifficultySelector(),
 
+            // Jumble Question Inputs
             if (_selectedGameType == QuestionGameType.jumble) ...[
               const SizedBox(height: 16),
               const Align(
@@ -249,6 +284,99 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
                 ),
               ),
             ],
+
+            // Playback Question Input
+            if (_selectedGameType == QuestionGameType.playback) ...[
+              const SizedBox(height: 16),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Playback Question Setup',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _audioTranscriptController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Audio Transcript',
+                  hintText: 'Five times what number results in thirty?',
+                ),
+                maxLines: 2,
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _webAudioLinkController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Web Audio Link (optional)',
+                  hintText: 'https://...',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _writtenPromptController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Written Prompt',
+                  hintText:
+                      'Listen to the audio and then create your response with the choices below.',
+                ),
+                maxLines: 2,
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _optionListController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Option List (comma-separated)',
+                  hintText: 'seven, eight, five',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _acceptedAnswersController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Accepted Answers (space-separated)',
+                  hintText: 'six',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _skillsController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Skills (comma-separated)',
+                  hintText: 'single_digit_addition, spoken_written_form',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _tagsController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Tags (comma-separated)',
+                  hintText: 'multiplication, audio, listening',
+                ),
+              ),
+            ],
+
 
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
