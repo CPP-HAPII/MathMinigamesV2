@@ -23,18 +23,80 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
   // Playback specific controllers
   final TextEditingController _audioTranscriptController = TextEditingController();
   final TextEditingController _webAudioLinkController = TextEditingController();
-  final TextEditingController _writtenPromptController = TextEditingController();
+
+  // Typing
+  final TextEditingController _multiAcceptedAnswersController = TextEditingController();
+
+  // FillBlanks
+  final TextEditingController _blankFormController = TextEditingController();
 
   QuestionGameType? _selectedGameType;
   Difficulty _selectedDifficulty = Difficulty.Easy;
 
+  bool _hasText(TextEditingController c) =>
+    c.text.trim().isNotEmpty;
+
+  bool _requireAll(List<TextEditingController> fields) =>
+    fields.every(_hasText);
+
   Future<void> _onSave() async {
-    if (_selectedGameType == null) return;
+    final gameType = _selectedGameType;
+    if (gameType == null) return;
+    bool isValid = false;
+
+    switch (gameType) {
+      case QuestionGameType.jumble:
+        isValid = _requireAll([
+          _displayProblemController,
+          _optionListController,
+          _acceptedAnswersController,
+        ]);
+        break;
+
+      case QuestionGameType.playback:
+        isValid = _requireAll([
+          _audioTranscriptController,
+          _webAudioLinkController,
+          _optionListController,
+          _acceptedAnswersController,
+        ]);
+        break;
+
+      case QuestionGameType.typing:
+        isValid = _requireAll([
+          _displayProblemController,
+          _multiAcceptedAnswersController,
+        ]);
+        break;
+
+      case QuestionGameType.fillBlanks:
+        isValid = _requireAll([
+          _displayProblemController,
+          _blankFormController,
+          _optionListController,
+          _acceptedAnswersController,
+        ]);
+        break;
+
+      case QuestionGameType.readAloud:
+        isValid = _requireAll([
+          _displayProblemController,
+          _multiAcceptedAnswersController,
+        ]);
+        break;
+    }
+
+    if (!isValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all required fields')),
+      );
+      return;
+    }
 
     final docRef =
         FirebaseFirestore.instance.collection('gameData').doc('questions');
 
-    // Shared fields
+    // Fields
     final optionList = _optionListController.text
         .split(',')
         .map((e) => e.trim())
@@ -54,10 +116,20 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
         .toList();
 
     final tags = _tagsController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
+      .split(',')
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+
+    // Typing
+    final multiAcceptedAnswers = _multiAcceptedAnswersController.text
+      .split(',')
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+
+    // FILLBLANKS
+    final blankForm = _blankFormController.text.trim();
 
     // Base fields
     final String id =
@@ -90,9 +162,57 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
         'type': 'PlaybackGameData',
         'audioTranscript': _audioTranscriptController.text.trim(),
         'webAudioLink': _webAudioLinkController.text.trim(),
-        'writtenPrompt': _writtenPromptController.text.trim(),
+        'writtenPrompt': 'Listen to the audio and then create your response with the choices below.',
         'optionList': optionList,
         'multiAcceptedAnswers': acceptedAnswers,
+        'skills': skills,
+        'tags': tags,
+        'difficulty': _selectedDifficulty.name,
+      };
+    }
+
+    // TYPING
+    else if (_selectedGameType == QuestionGameType.typing){
+      question = {
+        'id': id,
+        'gameType': 'Typing',
+        'type': 'TypingGameData',
+        'displayedProblem': _displayProblemController.text.trim(),
+        'multiAcceptedAnswers': multiAcceptedAnswers,
+        'skills': skills,
+        'tags': tags,
+        'difficulty': _selectedDifficulty.name,
+      };
+    }
+
+    // FILLBLANKS
+    else if (_selectedGameType == QuestionGameType.fillBlanks) {
+      question = {
+        'id': id,
+        'gameType': 'FillBlanks',
+        'type': 'FillBlanksGameData',
+        'blankform': blankForm,
+        'displayedProblem': _displayProblemController.text.trim(),
+        'writtenPrompt': "Use the options below to answer the word problem.",
+        'multiAcceptedAnswers': acceptedAnswers,
+        'optionList': optionList,
+        'skills': skills,
+        'tags': tags,
+        'difficulty': _selectedDifficulty.name,
+      };
+    }
+
+    // READALOUD
+    else if (_selectedGameType == QuestionGameType.readAloud) {
+      question = {
+        'id': id,
+        'gameType': 'ReadAloud',
+        'type': 'ReadAloudGameData',
+        'additionalInstructions': 'Only say the product, do not repeat the expression.',
+        'writtenPrompt': 'What is the product of the following expression?',
+        'displayedProblem': _displayProblemController.text.trim(),
+        'optionList': optionList,
+        'multiAcceptedAnswers': multiAcceptedAnswers,
         'skills': skills,
         'tags': tags,
         'difficulty': _selectedDifficulty.name,
@@ -227,7 +347,7 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
 
             _buildDifficultySelector(),
 
-            // Jumble Question Inputs
+            // Jumble Question Inputs -----------------------------
             if (_selectedGameType == QuestionGameType.jumble) ...[
               const SizedBox(height: 16),
               const Align(
@@ -292,7 +412,7 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
               ),
             ],
 
-            // Playback Question Input
+            // Playback Question Input -----------------------------
             if (_selectedGameType == QuestionGameType.playback) ...[
               const SizedBox(height: 16),
               const Align(
@@ -311,30 +431,6 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
                   border: OutlineInputBorder(),
                   labelText: 'Audio Transcript',
                   hintText: 'Five times what number results in thirty?',
-                ),
-                maxLines: 2,
-              ),
-
-              const SizedBox(height: 8),
-
-              TextField(
-                controller: _webAudioLinkController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Web Audio Link (optional)',
-                  hintText: 'https://...',
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              TextField(
-                controller: _writtenPromptController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Written Prompt',
-                  hintText:
-                      'Listen to the audio and then create your response with the choices below.',
                 ),
                 maxLines: 2,
               ),
@@ -383,7 +479,190 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
                 ),
               ),
             ],
+            
+            // Typing Question Input -----------------------------
+            if (_selectedGameType == QuestionGameType.typing) ...[
+              const SizedBox(height: 16),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Typing Question Setup', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
 
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _displayProblemController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Displayed Problem',
+                  hintText: '4153 + 3567 = 7720',
+                ),
+                maxLines: 3,
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _multiAcceptedAnswersController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Accepted Answers (comma-separated)',
+                  hintText: 'four thousand one hundred and fifty three plus three thousand five hundred and sixty seven equals seven thousand seven hundred and twenty',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _skillsController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Skills (comma-separated)',
+                  hintText: 'single_digit_addition, word_problem_written_form',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _tagsController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Tags (comma-separated)',
+                  hintText: 'multiplication, word-problem',
+                ),
+              ),
+            ],
+            
+            // Fillblanks Question Input -----------------------------
+            if (_selectedGameType == QuestionGameType.fillBlanks) ...[
+              const SizedBox(height: 16),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Fill Blank Question Setup', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _displayProblemController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Displayed Problem',
+                  hintText: 'Archery Team A hit the target 367 times. Team B hit the target 412 times. How many times did they hit the target?',
+                ),
+                maxLines: 3,
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _blankFormController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Blank Form',
+                  hintText: 'The teams hit the target ____ times',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _optionListController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Option List (comma-separated)',
+                  hintText: 'eight hundred, twenty one, seven hundred and seventy nine',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _acceptedAnswersController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Accepted Answer (space-separated)',
+                  hintText: 'seven hundred and seventy nine',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _skillsController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Skills (comma-separated)',
+                  hintText: 'single_digit_addition, written_form',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _tagsController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Tags (comma-separated)',
+                  hintText: 'addition, fill-blank',
+                ),
+              ),
+            ],
+
+            // ReadAloud Question Input -----------------------------
+            if (_selectedGameType == QuestionGameType.readAloud) ...[
+              const SizedBox(height: 16),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Read Aloud Question Setup', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _displayProblemController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Displayed Problem',
+                  hintText: 'What is the product of 7 and 8?',
+                ),
+                maxLines: 3,
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _multiAcceptedAnswersController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Accepted Answers (comma-separated)',
+                  hintText: 'fifty six, fifty-six, 56',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _skillsController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Skills (comma-separated)',
+                  hintText: 'multiplication, spoken_written_form',
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _tagsController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Tags (comma-separated)',
+                  hintText: 'multiplication, read-aloud, nums-to-words, spoken-response',
+                ),
+              ),
+            ],
 
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
