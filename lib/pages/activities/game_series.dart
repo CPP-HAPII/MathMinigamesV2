@@ -1,4 +1,3 @@
-
 // ignore_for_file: unused_field
 
 import 'dart:collection';
@@ -29,12 +28,15 @@ class GameTestPage extends StatelessWidget {
     this.difficultyType = DifficultyType.random,
     required this.sequenceData,
     this.langAssist,
+    required this.userId,
   });
 
   final ColorProfile colorProfile;
   final DifficultyType difficultyType;
   final SequenceData sequenceData;
   final LanguageAssistLevel? langAssist;
+  final String userId;
+
   @override
   Widget build(BuildContext context) {
     logger.i("The number of questions for the games are as follows: Playback: ${gameDataBank.playbackBank.length}, Reading: ${gameDataBank.readingBank.length}, Fill-in-the-Blank: ${gameDataBank.fillBlanksBank.length}, Jumble: ${gameDataBank.jumbleBank.length}, Typing: ${gameDataBank.typingBank.length}");
@@ -45,6 +47,8 @@ class GameTestPage extends StatelessWidget {
         colorProfile: colorProfile,
         difficultyType: difficultyType,
         sequenceData: sequenceData,
+        langAssist: langAssist,
+        userId: userId,
       ),
     );
   }
@@ -77,19 +81,21 @@ enum DifficultyType {
 
 class SeriesHomePage extends StatefulWidget {
 
-  final int maxQuestCount;
+  int maxQuestCount;
   final ColorProfile colorProfile;
   final DifficultyType difficultyType;
   final SequenceData? sequenceData;
   final LanguageAssistLevel? langAssist;
+  final String userId;
 
-  const SeriesHomePage({
+  SeriesHomePage({
     super.key, 
     this.maxQuestCount = 10,
     required this.colorProfile,
     required this.difficultyType,
     this.sequenceData,
     this.langAssist,
+    required this.userId,
   });
   
   @override
@@ -273,6 +279,16 @@ class SeriesHomePageState extends State<SeriesHomePage> {
 
   /// Fill the selectedPageOrder list with X number of random questions, where X is the max number of questions in a series
   void selectRandPages() {
+    if (pageTypesList.isEmpty) {
+      logger.e("Error: pageTypesList is empty. Cannot select random pages.");
+      return;
+    }
+
+    if (widget.maxQuestCount > pageTypesList.length) {
+      logger.w("Warning: maxQuestCount exceeds available pages. Adjusting to available pages.");
+      widget.maxQuestCount = pageTypesList.length;
+    }
+
     final random = Random();
     int randStartIndex = random.nextInt(pageTypesList.length);
     randomPageOrderList.clear();
@@ -353,16 +369,13 @@ class SeriesHomePageState extends State<SeriesHomePage> {
     try {
       logger.i("Sending game data to database");
       CollectionReference quizAttempt = FirebaseFirestore.instance.collection("quizAttempts");
-      List<Map<String, dynamic>> collectedData = PageDataManager().allData;
-      // We assume all data is available at this time
-      Map<String, dynamic> quizData = {
+      // Use userId as the document name
+      await quizAttempt.doc(widget.userId).set({
         'startTime': startTime,
         'submissionTime': endTime,
         "difficulty": widget.difficultyType.toString(),
-        'questions': collectedData
-      };
-
-      await quizAttempt.add(quizData);
+        'questions': PageDataManager().allData
+      });
       logger.i("Data added to firestore...");
     } catch (e) {
       logger.e('Error adding data to Firestore: $e');
@@ -372,6 +385,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
   @override
   Widget build(BuildContext context) {
     logger.d("This GameTest has a profile of: ${widget.colorProfile.idKey}");
+    
     // Add the page types to the page list to pick from
     pageTypesList.addAll(List.of([
       FillInActivityScreen(colorProfile: widget.colorProfile, langAssist: widget.langAssist),
@@ -623,7 +637,7 @@ class SeriesEndPageState extends State<SeriesEndPage> {
                                     Navigator.of(context).pop(),
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (context) => const HomePage()
+                                        builder: (context) => HomePage(userId: '000') // Temporary placeholder userId
                                       )
                                     )
                                   }, 

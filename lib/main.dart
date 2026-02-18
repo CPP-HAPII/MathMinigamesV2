@@ -3,8 +3,7 @@ import 'package:onwards/pages/game_data.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-
-
+import 'package:onwards/pages/login_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,5 +15,7 @@ void main() async {
   await gameDataBank.initBanks();
   await sequenceFiltersBank.initSequenceBank();
 
-  runApp(const HomeApp());
+  runApp(const MaterialApp(
+    home: LoginPage(),
+  ));
 }
