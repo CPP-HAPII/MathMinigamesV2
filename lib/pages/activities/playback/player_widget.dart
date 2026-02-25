@@ -73,35 +73,75 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     super.dispose();
   }
 
+  Widget _roundControlButton({
+  required Key key,
+  required VoidCallback? onPressed,
+  required IconData icon,
+  required Color backgroundColor,
+  required Color iconColor,
+}) {
+  final bool disabled = onPressed == null;
+
+  return GestureDetector(
+    key: key,
+    onTap: onPressed,
+    child: Opacity(
+      opacity: disabled ? 0.4 : 1.0,
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.black.withValues(alpha: 0.6),
+            width: 2,
+          ),
+        ),
+        child: Icon(
+          icon,
+          size: 32,
+          color: Colors.black,
+        ),
+      ),
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
-    final color = widget.colorProfile.backgroundColor;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
+            _roundControlButton(
               key: const Key('play_button'),
               onPressed: _isPlaying ? null : _play,
-              iconSize: 48.0,
-              icon: const Icon(Icons.play_arrow),
-              color: color,
+              icon: Icons.play_circle_outline_outlined,
+              backgroundColor: const Color(0xFF39D353),
+              iconColor: Colors.black,
             ),
-            IconButton(
-              key: const Key('pause_button'),
-              onPressed: _isPlaying ? _pause : null,
-              iconSize: 48.0,
-              icon: const Icon(Icons.pause),
-              color: color,
-            ),
-            IconButton(
+
+            const SizedBox(width: 16),
+
+            _roundControlButton(
               key: const Key('stop_button'),
               onPressed: _isPlaying || _isPaused ? _stop : null,
-              iconSize: 48.0,
-              icon: const Icon(Icons.stop),
-              color: color,
+              icon: Icons.stop_circle_outlined,
+              backgroundColor: const Color.fromARGB(255, 122, 103, 103),
+              iconColor: Colors.black,
+            ),
+
+            const SizedBox(width: 16),
+
+            _roundControlButton(
+              key: const Key('pause_button'),
+              onPressed: _isPlaying ? _pause : null,
+              icon: Icons.pause_circle_outline_outlined,
+              backgroundColor: const Color(0xFF7ED6FF), 
+              iconColor: Colors.black,
             ),
           ],
         ),

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:translator/translator.dart';
 import 'package:onwards/pages/constants.dart';
+import 'package:onwards/pages/tts.dart';
+
 
 class TranslateButtonAndText extends StatefulWidget {
   const TranslateButtonAndText({
     super.key,
     required this.sourceText,
-    this.colorProfile = lightFlavor,
+    this.colorProfile = greenFlavor,
     this.speakOnTranslate = false,
     this.targetLanguage = 'es',
     this.autoTranslate = false,
@@ -88,15 +90,15 @@ class _TranslateButtonAndTextState extends State<TranslateButtonAndText> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
               child: _loading
-                  ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: widget.colorProfile.contrastTextColor, strokeWidth: 2))
-                  : Text('Translate', style: TextStyle(color: widget.colorProfile.contrastTextColor)),
+                  ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: widget.colorProfile.textColor, strokeWidth: 2))
+                  : Text('Translate', style: TextStyle(color: widget.colorProfile.textColor)),
             ),
             const SizedBox(width: 8),
             if (_translation != null && _translation!.isNotEmpty)
               ElevatedButton(
                 onPressed: () => _speak(_translation!),
                 style: ElevatedButton.styleFrom(backgroundColor: widget.colorProfile.buttonColor),
-                child: Text('Play translation', style: TextStyle(color: widget.colorProfile.contrastTextColor)),
+                child: Text('Play translation', style: TextStyle(color: widget.colorProfile.textColor)),
               ),
           ],
         ),
@@ -104,7 +106,7 @@ class _TranslateButtonAndTextState extends State<TranslateButtonAndText> {
         if (_translation != null) Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            _translation!,
+            ("Translation:   ${_translation!}"),
             style: TextStyle(color: widget.colorProfile.textColor, fontSize: 18),
             textAlign: TextAlign.center,
           ),

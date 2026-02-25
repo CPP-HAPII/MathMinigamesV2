@@ -90,19 +90,13 @@ class DebugHomePageState extends State<DebugHomePage> {
   ColorProfile _getProfileByIndex(int index) {
     switch(index) {
         case 0:
-          return lightFlavor;
+          return greenFlavor;
         case 1:
-          return darkFlavor;
+          return blueFlavor;
         case 2:
-          return plainFlavor;
+          return lightFlavor;
         case 3:
-          return mintFlavor;
-        case 4:
-          return strawberryFlavor;
-        case 5:
-          return bananaFlavor;
-        case 6:
-          return peanutFlavor;
+          return darkFlavor;
         default:
           return lightFlavor;
       }

@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 abstract class GamePage extends StatefulWidget {
   const GamePage({
     super.key,
-    this.colorProfile = lightFlavor
+    this.colorProfile = greenFlavor
   });
 
   final ColorProfile colorProfile;
@@ -34,7 +34,7 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
   late Future<int> themeId;
   ColorProfile? cachedTheme;
 
-  late ColorProfile currentProfile = lightFlavor;
+  late ColorProfile currentProfile = greenFlavor;
 
   late Future<int> sequenceId;
 
@@ -125,7 +125,6 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
       currentProfile = widget.colorProfile;
     }
   }
-  // Maybe load sequence here????
 
   Future<void> increaseCorrectCount() async {
     final SharedPreferencesWithCache prefs = await userSessionCache;
@@ -152,19 +151,13 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
   ColorProfile getProfileByIndex(int index) {
     switch(index) {
         case 0:
-          return lightFlavor;
+          return greenFlavor;
         case 1:
-          return darkFlavor;
+          return blueFlavor;
         case 2:
-          return plainFlavor;
+          return lightFlavor;
         case 3:
-          return mintFlavor;
-        case 4:
-          return strawberryFlavor;
-        case 5:
-          return bananaFlavor;
-        case 6:
-          return peanutFlavor;
+          return darkFlavor;
         default:
           return lightFlavor;
       }
@@ -279,12 +272,12 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
   }
 
   void setSkills(List<String> challengedSkills) {
-    this.skillsTested = List.from(challengedSkills);
+    skillsTested = List.from(challengedSkills);
     logger.i("Skills Set");
   }
 
   void setQuestionId(String id) {
-    this.questionId = id;
+    questionId = id;
     logger.i("Question ID Set");
   }
 

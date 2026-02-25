@@ -8,7 +8,7 @@ class Skip extends StatelessWidget {
     return const Stack(
       children: [
         SizedBox(
-          width: 500,
+          width: 100,
           child: SkipButton()
         )
       ],
@@ -63,7 +63,7 @@ class SkipButtonState extends State<SkipButton> {
               ),
             ),
             actions: answerDialogList,
-            backgroundColor: Colors.white,
+            backgroundColor: const Color(0xFFD9D9D9),
           );
         }
       );
@@ -72,9 +72,14 @@ class SkipButtonState extends State<SkipButton> {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFD9D9D9),
+        foregroundColor: Colors.black,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      ),
       onPressed: () => {
         showSkipDialog()
       }, 
-      child: const Text("Skip this Question"));
+      child: const Text("Skip"));
   }
 }

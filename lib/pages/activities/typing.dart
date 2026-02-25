@@ -25,7 +25,7 @@ class TypeActivityScreen extends StatelessWidget {
   /// The default constructor that doesn't ask for the gameData.
   const TypeActivityScreen(
       {super.key,
-      this.colorProfile = lightFlavor,
+      this.colorProfile = greenFlavor,
       this.typingGameData = dummyData,
       this.fromLevelSelect = false,
       this.langAssist,});
@@ -49,7 +49,7 @@ class TypeActivityScreen extends StatelessWidget {
           title: Text('Type it Out Game',
               style: TextStyle(color: colorProfile.textColor)),
           backgroundColor: colorProfile.headerColor,
-          actions: const [Skip(), ScoreDisplayAction(), CalcButton()],
+          actions: const [ScoreDisplayAction(), CalcButton()],
           automaticallyImplyLeading: false,
         ),
         body: Container(
@@ -193,7 +193,7 @@ class _GameFormState extends GamePageState<GameForm> {
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8),
-                      child: ClickableTranslatedText(
+                      child: HoverTranslatedText(
                         text: widget.questionLabel,
                         colorProfile: currentProfile,
                         assistLevel: assistLevel,
@@ -267,24 +267,47 @@ class _GameFormState extends GamePageState<GameForm> {
                       ),
                     ),
 
-                    TextButton(
-                      onPressed: () {
-                        valid = validateAnswer();
-                        isCorrect = valid;
-                        valid
-                            ? showGameOverlay(-1)
-                            : showCorrectDialog(valid, currentProfile, -1);
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(
-                            currentProfile.checkAnswerButtonColor),
+                    SizedBox(
+                      width: double.infinity, 
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  valid = validateAnswer();
+                                  isCorrect = valid;
+                                  valid
+                                      ? showGameOverlay(-1)
+                                      : showCorrectDialog(valid, currentProfile, -1);
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                      currentProfile.checkAnswerButtonColor),
+                                ),
+                                child: Text(
+                                  'Check Answer',
+                                  style: TextStyle(
+                                      color: currentProfile.textColor),
+                                ),
+                              ),
+
+                              const SizedBox(width: 12),
+                            ],
+                          ),
+                          
+                          const Positioned(
+                            right: 8,
+                            child: SizedBox(
+                              height: 32,
+                              child: Skip(),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'Check Answer',
-                        style: TextStyle(
-                            color: currentProfile.contrastTextColor),
-                      ),
-                    ),
+                    )
                   ],
                 ),
               ),

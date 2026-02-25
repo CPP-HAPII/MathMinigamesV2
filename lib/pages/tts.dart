@@ -9,7 +9,7 @@ import 'package:onwards/pages/constants.dart';
 class TTSRunner extends StatefulWidget {
   const TTSRunner({
     super.key,
-    this.colorProfile = lightFlavor,
+    this.colorProfile = greenFlavor,
     required this.voiceLine
   });
 
@@ -209,16 +209,16 @@ class TSRunnerState extends State<TTSRunner> {
 
   Widget _btnSection() {
     return Container(
-      padding: EdgeInsets.only(top: 50.0),
+      padding: EdgeInsets.only(top: 50.0, bottom: 50.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildButtonColumn(Colors.green, Colors.greenAccent, Icons.play_arrow,
+          _buildButtonColumn(const Color(0xFF68CC00), Colors.greenAccent, Icons.play_circle_outline_outlined,
               'Play', _speak),
           _buildButtonColumn(
-              Colors.red, Colors.redAccent, Icons.stop, 'Stop', _stop),
+              const Color(0xFFFB5C42), Colors.redAccent, Icons.stop_circle_outlined, 'Stop', _stop),
           _buildButtonColumn(
-              Colors.blue, Colors.blueAccent, Icons.pause, 'Pause', _pause),
+              const Color(0xFF9DD9E4), Colors.blueAccent, Icons.pause_circle_outline_outlined, 'Pause', _pause),
         ],
       ),
     );
@@ -233,11 +233,12 @@ class TSRunnerState extends State<TTSRunner> {
           Tooltip(
             message: label,
             child: IconButton(
-              style: const ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll(Colors.white),
+              iconSize: 42,
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(color),
               ),
               icon: Icon(icon),
-              color: color,
+              color: Colors.black,
               splashColor: splashColor,
               onPressed: () => func()
             ),

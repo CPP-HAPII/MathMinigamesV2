@@ -36,7 +36,7 @@ class HomeApp extends StatelessWidget {
   });
 
 
-  final ColorProfile colorProfile = lightFlavor;
+  final ColorProfile colorProfile = greenFlavor;
 
   void addSkills() {
     skillMap.addAll(
@@ -118,7 +118,7 @@ class HomePageState extends State<HomePage> {
 
   final maxThemes = 6;
 
-  ColorProfile currentProfile = lightFlavor;
+  ColorProfile currentProfile = greenFlavor;
   Future<void> loadTheme() async {
     final SharedPreferencesWithCache prefs = await _prefs;
     int? themeIndex = (prefs.getInt('theme_id') ?? 0);
@@ -152,7 +152,6 @@ class HomePageState extends State<HomePage> {
 
     setState(() {
       sequenceId = prefs.setInt('sequence_id', index).then((_) {
-        logger.i('Updating sequence...');
         currentSequence = sequenceFiltersBank.sequenceBank[index];
         return index;
       });
@@ -190,19 +189,13 @@ class HomePageState extends State<HomePage> {
   ColorProfile _getProfileByIndex(int index) {
     switch(index) {
         case 0:
-          return lightFlavor;
+          return greenFlavor;
         case 1:
-          return darkFlavor;
+          return blueFlavor;
         case 2:
-          return plainFlavor;
+          return lightFlavor;
         case 3:
-          return mintFlavor;
-        case 4:
-          return strawberryFlavor;
-        case 5:
-          return bananaFlavor;
-        case 6:
-          return peanutFlavor;
+          return darkFlavor;
         default:
           return lightFlavor;
       }
@@ -656,7 +649,7 @@ class DesktopCarousel extends StatefulWidget {
     super.key, 
     required this.height, 
     required this.children,
-    this.colorProfile = plainFlavor,
+    this.colorProfile = greenFlavor,
     this.modeHeader = "Game Select: Select the Game you want to try"
   });
 
@@ -775,7 +768,7 @@ class _DesktopPageButton extends StatelessWidget {
   const _DesktopPageButton({
     this.isEnd = false,
     this.onTap,
-    this.colorProfile = lightFlavor
+    this.colorProfile = greenFlavor
   });
 
   final bool isEnd;
@@ -852,11 +845,11 @@ class GameCard extends StatelessWidget {
     required this.gameRoute, 
     required this.keyId,
     this.imageAsset,
-    this.gameWidget = const FillInActivityScreen(colorProfile: plainFlavor),
+    this.gameWidget = const FillInActivityScreen(colorProfile: greenFlavor),
     required this.title,
     required this.subtitle,
     required this.styleMode,
-    this.colorProfile = plainFlavor,
+    this.colorProfile = greenFlavor,
     required this.sequenceData,
     this.langAssist,
   });
@@ -991,7 +984,7 @@ class _OverlayWidgetState extends State<OverlayWidget> {
       ),
     );
 
-    final overlay = Overlay.of(context)!;
+    final overlay = Overlay.of(context);
     overlay.insert(entry!);
   }
 }

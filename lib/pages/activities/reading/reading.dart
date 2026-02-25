@@ -22,7 +22,7 @@ const ReadAloudGameData dummyData = ReadAloudGameData(displayedProblem: "", mult
 class ReadingActivityScreen extends StatelessWidget {
   const ReadingActivityScreen({
     super.key,
-    this.colorProfile = lightFlavor,
+    this.colorProfile = greenFlavor,
     this.readingGameData = dummyData,
     this.fromLevelSelect = false,
     this.langAssist,
@@ -46,7 +46,7 @@ class ReadingActivityScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Read Aloud Game', style: TextStyle(color: colorProfile.textColor)),
         backgroundColor: colorProfile.headerColor,
-        actions: const [Skip(), ScoreDisplayAction(), CalcButton()],
+        actions: const [ScoreDisplayAction(), CalcButton()],
         automaticallyImplyLeading: false,
       ),
       body: Container(
@@ -224,7 +224,7 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
 
                 Padding(
                   padding: const EdgeInsets.all(8),
-                  child: ClickableTranslatedText(
+                  child: HoverTranslatedText(
                     text: widget.questionLabel,
                     colorProfile: currentProfile,
                     assistLevel: assistLevel,
@@ -295,40 +295,56 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
                     ],
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: _isListening || _speech.isListening ? stopEngine : () => {
-                        isValid = validateAnswer(),
-                        if (isValid) {
-                          showGameOverlay(-1)
-                        } else {
-                          showCorrectDialog(isValid, currentProfile, -1)
-                        }
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(currentProfile.checkAnswerButtonColor),
-                      ),
-                      child: Text(
-                        'Check Answer',
-                        style: TextStyle(color: currentProfile.contrastTextColor),
-                      )
+                SizedBox(
+                    width: double.infinity, 
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextButton(
+                              onPressed: _isListening || _speech.isListening ? stopEngine : () => {
+                                isValid = validateAnswer(),
+                                if (isValid) {
+                                  showGameOverlay(-1)
+                                } else {
+                                  showCorrectDialog(isValid, currentProfile, -1)
+                                }
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: WidgetStatePropertyAll(currentProfile.checkAnswerButtonColor),
+                              ),
+                              child: Text(
+                                'Check Answer',
+                                style: TextStyle(color: currentProfile.textColor),
+                              )
+                            ),
+                            TextButton(
+                              onPressed: () => {
+                                clearText()
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: WidgetStatePropertyAll(currentProfile.clearAnswerButtonColor),
+                              ),
+                              child: Text(
+                                'Clear all answers',
+                                style: TextStyle(color: currentProfile.textColor),
+                              )
+                            )
+                          ],
+                        ),
+                        
+                        const Positioned(
+                          right: 8,
+                          child: SizedBox(
+                            height: 32,
+                            child: Skip(),
+                          ),
+                        ),
+                      ],
                     ),
-                    TextButton(
-                      onPressed: () => {
-                        clearText()
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(currentProfile.clearAnswerButtonColor),
-                      ),
-                      child: Text(
-                        'Clear all answers',
-                        style: TextStyle(color: currentProfile.contrastTextColor),
-                      )
-                    )
-                  ],
-                )
+                  )
               ],
             ),
           ),

@@ -27,7 +27,7 @@ class JumbleActivityScreen extends StatelessWidget {
 
   const JumbleActivityScreen({
     super.key,
-    this.colorProfile = lightFlavor,
+    this.colorProfile = greenFlavor,
     this.jumbleGameData = dummyData,
     this.fromLevelSelect = false,
     this.langAssist,
@@ -46,7 +46,7 @@ class JumbleActivityScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Word Jumble Game', style: TextStyle(color: colorProfile.textColor)),
         backgroundColor: colorProfile.headerColor,
-        actions: const [Skip(), ScoreDisplayAction(), CalcButton()],
+        actions: const [ ScoreDisplayAction(), CalcButton()],
         automaticallyImplyLeading: false,
       ),
       body: Container(
@@ -320,7 +320,7 @@ class GameFormState extends GamePageState<GameForm> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8),
-                    child: ClickableTranslatedText(
+                    child: HoverTranslatedText(
                       text: widget.questionLabel,
                       colorProfile: currentProfile,
                       assistLevel: assistLevel,
@@ -381,43 +381,59 @@ class GameFormState extends GamePageState<GameForm> {
                         children: dynamicButtonList,
                       ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextButton(
-                        onPressed: _selectedAnswers.isEmpty ? null : () => {
-                          validIndex = validateAnswer(),
-                          if (validIndex < 0) {
-                            showGameOverlay(validIndex)
-                          } else {
-                            showCorrectDialog(validIndex == -1, currentProfile, validIndex)
-                          }
-                        }, 
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll(currentProfile.checkAnswerButtonColor),
-                        ),
-                        child: Text(
-                          'Check Answer',
-                            style: TextStyle(
-                              color: currentProfile.contrastTextColor
+                  SizedBox(
+                    width: double.infinity, 
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextButton(
+                              onPressed: _selectedAnswers.isEmpty ? null : () => {
+                                validIndex = validateAnswer(),
+                                if (validIndex < 0) {
+                                  showGameOverlay(validIndex)
+                                } else {
+                                  showCorrectDialog(validIndex == -1, currentProfile, validIndex)
+                                }
+                              }, 
+                              style: ButtonStyle(
+                                backgroundColor: WidgetStatePropertyAll(currentProfile.checkAnswerButtonColor),
+                              ),
+                              child: Text(
+                                'Check Answer',
+                                  style: TextStyle(
+                                    color: currentProfile.textColor
+                                  ),
+                              ),
                             ),
+                            TextButton(
+                              onPressed: () => {
+                                clearAnswers()
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: WidgetStatePropertyAll(currentProfile.clearAnswerButtonColor),
+                              ),
+                              child: Text(
+                                'Clear all answers',
+                                style: TextStyle(
+                                  color: currentProfile.textColor),
+                              )
+                            ),
+                          ],
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () => {
-                          clearAnswers()
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll(currentProfile.clearAnswerButtonColor),
+                        
+                        const Positioned(
+                          right: 8,
+                          child: SizedBox(
+                            height: 32,
+                            child: Skip(),
+                          ),
                         ),
-                        child: Text(
-                          'Clear all answers',
-                          style: TextStyle(
-                            color: currentProfile.contrastTextColor),
-                        )
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  )
                 ],
               ),
             ),
@@ -504,7 +520,7 @@ class GameButtonState extends State<GameButton> {
         child: Text(
           widget.label,
           style: TextStyle(
-            color: widget.colorProfile.contrastTextColor,
+            color: widget.colorProfile.textColor,
             fontSize: 16,
           ),
         ),

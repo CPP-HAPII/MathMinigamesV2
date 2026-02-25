@@ -637,7 +637,7 @@ class SeriesEndPageState extends State<SeriesEndPage> {
                                     Navigator.of(context).pop(),
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (context) => HomePage(userId: '000') // Temporary placeholder userId
+                                        builder: (context) => HomePage(userId: "000")
                                       )
                                     )
                                   }, 

@@ -3,13 +3,13 @@ import 'package:onwards/pages/components/lang_assist.dart';
 import 'package:onwards/pages/components/translation_service.dart';
 import '../constants.dart';
 
-class ClickableTranslatedText extends StatefulWidget {
+class HoverTranslatedText extends StatefulWidget {
   final String text;
   final ColorProfile colorProfile;
   final LanguageAssistLevel? assistLevel;
   final String targetLanguage;
 
-  const ClickableTranslatedText({
+  const HoverTranslatedText({
     super.key,
     required this.text,
     required this.colorProfile,
@@ -18,11 +18,11 @@ class ClickableTranslatedText extends StatefulWidget {
   });
 
   @override
-  State<ClickableTranslatedText> createState() =>
-      _ClickableTranslatedTextState();
+  State<HoverTranslatedText> createState() =>
+      _HoverTranslatedTextState();
 }
 
-class _ClickableTranslatedTextState extends State<ClickableTranslatedText> {
+class _HoverTranslatedTextState extends State<HoverTranslatedText> {
   final Map<String, String> _translationCache = {};
   final Set<String> _loadingWords = {};
 
@@ -80,13 +80,13 @@ class _ClickableTranslatedTextState extends State<ClickableTranslatedText> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 textStyle: TextStyle(
-                  color: widget.colorProfile.contrastTextColor,
+                  color: widget.colorProfile.textColor,
                   fontSize: 16,
                 ),
                 child: Text(
                   token,
                   style: TextStyle(
-                    color: widget.colorProfile.buttonColor,
+                    color: widget.colorProfile.textColor,
                     fontSize: 30,
                     decoration: TextDecoration.none,
                   ),

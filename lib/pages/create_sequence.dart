@@ -87,7 +87,7 @@ class _CustomSequencePageState extends State<CustomSequencePage> {
 
   @override
   Widget build(BuildContext context) {
-    const ColorProfile profile = lightFlavor;
+    const ColorProfile profile = greenFlavor;
 
     return Scaffold(
       appBar: AppBar(

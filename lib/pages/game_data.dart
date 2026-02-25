@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:convert';
 
+import 'package:logger/logger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:onwards/pages/activities/game_series.dart';
 import 'package:onwards/pages/home.dart';
@@ -134,7 +135,6 @@ class SequenceFiltersBank {
         logger.e("Error parsing sequence question at index $i: $e");
       }
     }
-  logger.i("Loaded ${sequenceBank.length} sequences into sequenceBank.");
   }
 }
 
@@ -396,8 +396,6 @@ class GameDataBank {
     await initEasyModeBank();
     await initHardModeBank();
     await initIntermediateModeBank();
-
-    logger.i("Iniitalized the game questions from the database.");
 
     // shuffle bank; Note: Getter for these types are randomized too
     fillBlanksBank.shuffle(random);
@@ -1016,7 +1014,6 @@ class GameDataBank {
 
 
   Future<void> initEasyModeBank() async {
-    print("Initializing easy mode question bank from Firestore...");
     DocumentReference gameDataQuestions = FirebaseFirestore.instance
         .collection("gameData")
         .doc("questions");
@@ -1030,7 +1027,7 @@ class GameDataBank {
     DocumentSnapshot liveTagsSnapshot = await liveTagsDoc.get();
 
     if(!snapshot.exists || !liveTagsSnapshot.exists){
-      print("No questions found in Firestore or liveTagsDoc missing.");
+      logger.i("No questions found in Firestore or liveTagsDoc missing.");
       return;
     }
     Map<String, dynamic> questionsData = snapshot.data() as Map<String, dynamic>;
@@ -1039,8 +1036,6 @@ class GameDataBank {
     List<dynamic> questions = questionsData['questions'];
     List<dynamic> liveTags = liveTagsData['liveTags'];
 
-    print("Fetched ${questions.length} questions from Firestore");
-    print("Fetched ${liveTags.length} live tags");
 
     // Use lowercase sets so comparisons become case-insensitive
     final Set<String> allowedDifficulties = {};
@@ -1074,9 +1069,6 @@ class GameDataBank {
         }
       }
     }
-    print("Allowed difficulties: $allowedDifficulties");
-    print("Allowed game types: $allowedGameTypes");
-    print("Allowed filters: $allowedFilters");
 
     for (int i = 0; i < questions.length; i++) {
       var q = questions[i];
@@ -1100,7 +1092,7 @@ class GameDataBank {
         }
 
         if (!matchesAllowed(qDifficulty, allowedDifficulties)) {
-          print('Skipping question index $i (id=${q['id'] ?? '<no id>'}) due to difficulty mismatch: $qDifficulty');
+          logger.i('Skipping question index $i (id=${q['id'] ?? '<no id>'}) due to difficulty mismatch: $qDifficulty');
           continue;
         }
         if (!matchesAllowed(qGameType, allowedGameTypes)) {
@@ -1154,19 +1146,17 @@ class GameDataBank {
             // default to ReadAloud if unsure
             easyModeBank.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
           } else {
-            print('Skipping unknown question format at index $i: $q');
+            logger.i('Skipping unknown question format at index $i: $q');
           }
         }
       } catch (e, st) {
         // Log and continue so one malformed entry doesn't stop loading
-        print('Failed to load question at index $i: $e');
-        print(q);
-        print(st);
+        logger.i('Failed to load question at index $i: $e');
+        logger.i('Stack trace: $st');
         continue;
       }
     }
 
-    print("Loaded ${easyModeBank.length} easy questions");
   }
 
   Future<void> initIntermediateModeBank() async {
@@ -1546,7 +1536,7 @@ class GameDataBank {
         : (getAllQuestions().isNotEmpty ? rawQuestionDocs : <Map<String, dynamic>>[]);
 
     if (sourceDocs.isEmpty) {
-      print('No raw question docs available for filtering. Ensure initQuestionBank() ran.');
+      logger.i('No raw question docs available for filtering. Ensure initQuestionBank() ran.');
       return <GameData>[];
     }
 
@@ -1620,14 +1610,14 @@ class GameDataBank {
           }
         }
       } catch (e, st) {
-        print('Failed to load question at index $i: $e');
-        print(q);
-        print(st);
+        logger.i('Failed to load question at index $i: $e');
+        logger.i(q);
+        logger.i(st);
         continue;
       }
     }
 
-    print('Loaded ${results.length} filtered questions for sequence "${sequenceData.name}"');
+    logger.i('Loaded ${results.length} filtered questions for sequence "${sequenceData.name}"');
     return results;
   }
 }

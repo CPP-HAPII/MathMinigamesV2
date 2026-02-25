@@ -15,7 +15,7 @@ class ScoreDisplayAction extends StatelessWidget {
       children: [
         SizedBox(
           width: 400,
-          child: ScoreDisplayWidget(currentProfile: lightFlavor),
+          child: ScoreDisplayWidget(currentProfile: greenFlavor),
         )
       ],
     );

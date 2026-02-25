@@ -26,7 +26,7 @@ class FillInActivityScreen extends StatelessWidget {
 
   const FillInActivityScreen({
     super.key,
-    this.colorProfile = plainFlavor,
+    this.colorProfile = greenFlavor,
     this.fillBlanksGameData = dummyData,
     this.fromLevelSelect = false,
     this.langAssist,
@@ -45,7 +45,7 @@ class FillInActivityScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Fill in the Blank Game', style: TextStyle(color: colorProfile.textColor)),
         backgroundColor: colorProfile.headerColor,
-        actions: const [Skip(), ScoreDisplayAction(), CalcButton()],
+        actions: const [ScoreDisplayAction(), CalcButton()],
         automaticallyImplyLeading: false,
       ),
       body: Container(
@@ -178,7 +178,7 @@ class GameFormState extends GamePageState<GameForm> {
                 _selectedAnswers[countForSelected],
                 style: TextStyle(
                   fontSize: 18.0,
-                  color: currentProfile.contrastTextColor
+                  color: currentProfile.textColor
                 ),
               )
             )
@@ -257,7 +257,7 @@ class GameFormState extends GamePageState<GameForm> {
         ),
         child: Text(
           option, 
-          style: TextStyle(color: currentProfile.contrastTextColor),
+          style: TextStyle(color: currentProfile.textColor),
         ),
       );
       Padding padding = Padding(
@@ -287,7 +287,7 @@ class GameFormState extends GamePageState<GameForm> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8),
-                  child: ClickableTranslatedText(
+                  child: HoverTranslatedText(
                     text: widget.questionLabel,
                     colorProfile: currentProfile,
                     assistLevel: assistLevel,
@@ -340,46 +340,61 @@ class GameFormState extends GamePageState<GameForm> {
                     children: dynamicButtonList,
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: TextButton(
-                        onPressed: () => {
-                          isValid = validateAnswer(),
-                          if (isValid) {
-                            showGameOverlay(-1)
-                          } else {
-                            showCorrectDialog(isValid, currentProfile, -1)
-                          }
-                        }, 
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll(currentProfile.checkAnswerButtonColor),
-                        ),
-                        child: Text(
-                          'Check Answer',
-                          style: TextStyle(color: currentProfile.contrastTextColor),
-                        )
-                      )
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          currentCount = 0;
-                          _selectedAnswers.clear();
-                        });
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(currentProfile.clearAnswerButtonColor),
+                SizedBox(
+                      width: double.infinity, 
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: TextButton(
+                                  onPressed: () => {
+                                    isValid = validateAnswer(),
+                                    if (isValid) {
+                                      showGameOverlay(-1)
+                                    } else {
+                                      showCorrectDialog(isValid, currentProfile, -1)
+                                    }
+                                  }, 
+                                  style: ButtonStyle(
+                                    backgroundColor: WidgetStatePropertyAll(currentProfile.checkAnswerButtonColor),
+                                  ),
+                                  child: Text(
+                                    'Check Answer',
+                                    style: TextStyle(color: currentProfile.textColor),
+                                  )
+                                )
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    currentCount = 0;
+                                    _selectedAnswers.clear();
+                                  });
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(currentProfile.clearAnswerButtonColor),
+                                ),
+                                child: Text(
+                                  'Clear all answers',
+                                  style: TextStyle(color: currentProfile.textColor),
+                                  )
+                                )
+                            ],
+                          ),
+                          const Positioned(
+                            right: 8,
+                            child: SizedBox(
+                              height: 32,
+                              child: Skip(),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'Clear all answers',
-                        style: TextStyle(color: currentProfile.contrastTextColor),
-                        )
-                      )
-                  ],
-                )
+                    )
               ],
             ),
             ),

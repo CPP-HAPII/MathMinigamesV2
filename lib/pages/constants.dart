@@ -3,7 +3,45 @@ import 'package:flutter/material.dart';
 const darkStyle = TextStyle(color: Colors.white);
 const lightStyle = TextStyle(color: Colors.black);
 
-const ColorProfile lightFlavor = ColorProfile(
+const ColorProfile greenFlavor = ColorProfile(
+    backgroundColor: Color.fromARGB(255, 121, 156, 84),
+    headerColor: Color.fromARGB(255, 102, 132, 70),
+    buttonColor: Color.fromARGB(255, 96, 198, 216), 
+    textColor: Colors.black,
+    contrastTextColor: Colors.white,
+    checkAnswerButtonColor: Color.fromARGB(255, 111, 216, 0),
+    clearAnswerButtonColor: Color.fromARGB(255, 224, 68, 68),
+    backBoxDecoration: BoxDecoration(
+      image: DecorationImage(
+        image: AssetImage("assets/images/green_flavor.png"),
+        fit: BoxFit.cover
+      ),
+      color: Color.fromARGB(255, 18, 165, 170),
+    ),
+    backgroundImage: AssetImage("assets/images/green_flavor.png"),
+    idKey: "green flavor"
+  );
+
+const ColorProfile blueFlavor = ColorProfile(
+    backgroundColor: Color.fromARGB(255, 110, 166, 189),
+    headerColor: Color.fromARGB(255, 96, 135, 150),
+    buttonColor: Color.fromARGB(255, 157, 217, 228), 
+    textColor: Colors.black,
+    contrastTextColor: Colors.white,
+    checkAnswerButtonColor: Color.fromARGB(255, 111, 216, 0),
+    clearAnswerButtonColor: Color.fromARGB(255, 224, 68, 68),
+    backBoxDecoration: BoxDecoration(
+      image: DecorationImage(
+        image: AssetImage("assets/images/blue_flavor.jpg"),
+        fit: BoxFit.cover
+      ),
+      color: Color.fromARGB(255, 18, 165, 170),
+    ),
+    backgroundImage: AssetImage("assets/images/blue_flavor.jpg"),
+    idKey: "blue flavor"
+  );
+
+  const ColorProfile lightFlavor = ColorProfile(
     backgroundColor: Colors.white,
     headerColor: Colors.lightBlue,
     buttonColor: Colors.blueGrey, 
@@ -40,101 +78,6 @@ const ColorProfile lightFlavor = ColorProfile(
     ),
     backgroundImage: AssetImage("assets/images/blank.png"),
     idKey: "dark flavor"
-  );
-
-const ColorProfile plainFlavor = ColorProfile(
-    backgroundColor: Colors.white,
-    headerColor: Color.fromARGB(255, 210, 210, 210),
-    buttonColor: Color.fromARGB(255, 34, 61, 89), 
-    textColor: Colors.white,
-    contrastTextColor: Colors.white,
-    checkAnswerButtonColor: Colors.green,
-    clearAnswerButtonColor: Colors.red,
-    backBoxDecoration: BoxDecoration(
-      image: DecorationImage(
-        image: AssetImage("assets/images/space.png"), 
-        fit: BoxFit.cover
-      ),
-      color: Colors.white
-    ),
-    backgroundImage: AssetImage("assets/images/space.png"),
-    idKey: "plain flavor"
-  );
-
-const ColorProfile mintFlavor = ColorProfile(
-    backgroundColor: Color.fromARGB(255, 18, 165, 170),
-    headerColor: Color.fromARGB(255, 60, 144, 163),
-    buttonColor: Color.fromARGB(255, 38, 171, 171), 
-    textColor: Colors.black,
-    contrastTextColor: Colors.white,
-    checkAnswerButtonColor: Colors.green,
-    clearAnswerButtonColor: Colors.red,
-    backBoxDecoration: BoxDecoration(
-      image: DecorationImage(
-        image: AssetImage("assets/images/mint_flavor.png"),
-        fit: BoxFit.cover
-      ),
-      color: Color.fromARGB(255, 18, 165, 170),
-    ),
-    backgroundImage: AssetImage("assets/images/mint_flavor.png"),
-    idKey: "mint flavor"
-  );
-
-const ColorProfile strawberryFlavor = ColorProfile(
-    backgroundColor: Colors.white,
-    headerColor: Color.fromARGB(255, 254, 129, 177),
-    buttonColor: Color.fromARGB(255, 250, 135, 135), 
-    textColor: Colors.white,
-    contrastTextColor: Colors.black,
-    checkAnswerButtonColor: Colors.green,
-    clearAnswerButtonColor: Colors.red,
-    backBoxDecoration: BoxDecoration(
-      image: DecorationImage(
-        image: AssetImage("assets/images/rad_red.png"), 
-        fit: BoxFit.cover
-      ),
-      color: Color.fromARGB(255, 197, 81, 187),
-    ),
-    backgroundImage: AssetImage("assets/images/rad_red.png"),
-    idKey: "strawberry flavor"
-  );
-
-const ColorProfile bananaFlavor = ColorProfile(
-    backgroundColor: Colors.white,
-    headerColor: Colors.yellow,
-    buttonColor: Color.fromARGB(255, 237, 226, 9), 
-    textColor: Colors.black,
-    contrastTextColor: Colors.black,
-    checkAnswerButtonColor: Colors.green,
-    clearAnswerButtonColor: Colors.red,
-    backBoxDecoration: BoxDecoration(
-      image: DecorationImage(
-        image: AssetImage("assets/images/yellow.png"), 
-        fit: BoxFit.cover
-      ),
-      color: Color.fromARGB(255, 255, 251, 0),
-    ),
-    backgroundImage: AssetImage("assets/images/yellow.png"),
-    idKey: "banana flavor"
-  );
-
-const ColorProfile peanutFlavor = ColorProfile(
-    backgroundColor: Colors.white,
-    headerColor: Color.fromARGB(255, 215, 129, 43),
-    buttonColor: Color.fromARGB(255, 210, 139, 40), 
-    textColor: Colors.black,
-    contrastTextColor: Colors.white,
-    checkAnswerButtonColor: Colors.green,
-    clearAnswerButtonColor: Colors.red,
-    backBoxDecoration: BoxDecoration(
-      image: DecorationImage(
-        image: AssetImage("assets/images/dreamy.png"), 
-        fit: BoxFit.cover
-      ),
-      color: Color.fromARGB(255, 168, 98, 79),
-    ),
-    backgroundImage: AssetImage("assets/images/dreamy.png"),
-    idKey: "peanut flavor"
   );
 
 // Color profiles for the screens
