@@ -12,6 +12,7 @@ import 'package:onwards/pages/score_display.dart';
 import 'package:onwards/pages/create_sequence.dart';
 import 'package:onwards/pages/create_question.dart';
 import 'package:onwards/pages/components/lang_assist.dart';
+import 'package:onwards/pages/profile_settings.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -34,7 +35,6 @@ class HomeApp extends StatelessWidget {
   const HomeApp({
     super.key,
   });
-
 
   final ColorProfile colorProfile = greenFlavor;
 
@@ -147,36 +147,12 @@ class HomePageState extends State<HomePage> {
     return index;
   }
 
-  Future<void> _setSequenceCounter(int index) async {
-    final SharedPreferencesWithCache prefs = await _prefs;
-
-    setState(() {
-      sequenceId = prefs.setInt('sequence_id', index).then((_) {
-        currentSequence = sequenceFiltersBank.sequenceBank[index];
-        return index;
-      });
-    });
-  }
-
   Future<SequenceData> getCurrrentSequence(Future<int> sequenceId) async {
     final SharedPreferencesWithCache prefs = await _prefs;
     int index = (prefs.getInt('sequence_id') ?? 0);
     return sequenceFiltersBank.sequenceBank[index];
   } 
 
-  Future<void> _setLangAssistLevel(int index) async {
-    if (index < 0 || index >= levels.length) return;
-
-    final prefs = await _prefs;
-    await prefs.setInt('lang_assist_level', index);
-
-    setState(() {
-      selected = index;
-      currentLangAssist = levels[index]; // update langAssist value
-    });
-
-    logger.i('Language Assist level set to ${levels[index].label}');
-  }
 
   void _loadAssistLevel() async {
     final saved = await AssistLevelService.load();
@@ -199,21 +175,6 @@ class HomePageState extends State<HomePage> {
         default:
           return lightFlavor;
       }
-  }
-
-  Future<void> _incrementCounter() async {
-    final SharedPreferencesWithCache prefs = await _prefs;
-    if ((prefs.getInt('theme_id') ?? 0) >= maxThemes) {
-      return;
-    }
-    final int counter = (prefs.getInt('theme_id') ?? 0) + 1;
-    setState(() {
-      themeId = prefs.setInt('theme_id', counter).then((_) {
-        logger.i('Updating theme...');
-        currentProfile = _getProfileByIndex(counter);
-        return counter;
-      });
-    });
   }
 
   Future<void> addMasteredTopic(String topic) async {
@@ -248,22 +209,6 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _decrementCounter() async {
-    final SharedPreferencesWithCache prefs = await _prefs;
-    if ((prefs.getInt('theme_id') ?? 0) <= 0) {
-      return;
-    }
-
-    final int counter = (prefs.getInt('theme_id') ?? 0) - 1;
-    setState(() {
-      themeId = prefs.setInt('theme_id', counter).then((_) {
-        logger.i('Updating theme...');
-        currentProfile = _getProfileByIndex(counter);
-        return counter;
-      });
-    });
-  }
-
   @override
   void initState() {
     super.initState();
@@ -293,7 +238,7 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> gameCards = <Widget> [
+    List<Widget> gameCards = <Widget>[
       GameCard(
         imageAsset: const AssetImage(
           'assets/images/play_mode.png'
@@ -314,6 +259,7 @@ class HomePageState extends State<HomePage> {
         sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
         langAssist: currentLangAssist,
       ),
+      /*
       GameCard(
         imageAsset: const AssetImage(
           'assets/images/debug_mode.png'
@@ -328,6 +274,7 @@ class HomePageState extends State<HomePage> {
         sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
         langAssist: currentLangAssist,
       )
+      */
     ];
 
     return Scaffold(
@@ -341,6 +288,7 @@ class HomePageState extends State<HomePage> {
         child: ConstrainedBox(
           constraints: BoxConstraints(
             minHeight: MediaQuery.of(context).size.height,
+            minWidth: MediaQuery.of(context).size.width,
           ),
           child: Container(
             decoration: currentProfile.backBoxDecoration,
@@ -357,11 +305,13 @@ class HomePageState extends State<HomePage> {
                     ),
                     children: [
                       CarouselCardItem(
-                        child: DesktopCarousel(
-                          height: minHeight,
-                          colorProfile: currentProfile,
-                          children: gameCards,
-                        ),
+                        child: 
+                          DesktopCarousel(
+                            height: minHeight,
+                            colorProfile: currentProfile,
+                            modeHeader: widget.userId,
+                            children: gameCards,
+                          ),
                       )
                     ],
                   ),
@@ -400,94 +350,7 @@ class HomePageState extends State<HomePage> {
                   ),
                 ),
                 */
-                // Block code above for live demo - this will be moved to admin page later on
-                FutureBuilder<int>(
-                  future: themeId,
-                  builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                    switch (snapshot.connectionState) {
-                      case ConnectionState.none:
-                      case ConnectionState.waiting:
-                        return const CircularProgressIndicator();
-                      case ConnectionState.active:
-                      case ConnectionState.done:
-                        if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}', style: TextStyle(color: currentProfile.textColor));
-                        } else {
-                          return Text(
-                            'Current theme: ${currentProfile.idKey}',
-                            style: TextStyle(
-                              color: currentProfile.textColor,
-                            ),
-                          );
-                        }
-                    }
-                  },
-                ),
-                Text(
-                  "Language Assist",
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: currentProfile.textColor,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(levels.length, (index) {
-                    final isSelected = selected == index;
-
-                    return Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isSelected
-                              ? Colors.green
-                              : currentProfile.buttonColor,
-                        ),
-                        onPressed: () => _setLangAssistLevel(index),
-                        child: Text(
-                          levels[index].label,
-                          style: TextStyle(
-                            color: currentProfile.textColor,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Tooltip(
-                      message: "Previous Theme",
-                      child: ElevatedButton(
-                        style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
-                        onPressed: _decrementCounter,
-                        child: Icon(Icons.arrow_left, color: currentProfile.textColor),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text(
-                        "Theme Select",
-                        style: TextStyle(
-                          color: currentProfile.textColor,
-                        ),
-                      ),
-                    ),
-                    Tooltip(
-                      message: "Next Theme",
-                      preferBelow: true,
-                      child: ElevatedButton(
-                        style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
-                        onPressed: _incrementCounter,
-                        child: Icon(Icons.arrow_right, color: currentProfile.textColor),
-                      ),
-                    )
-                  ],
-                ),
+                
                 /* TODO: Possible move sequence select to admin page - comment out for live demo
                 FutureBuilder<int>(
                   future: sequenceId,
@@ -685,81 +548,119 @@ class DesktopCarouselState extends State<DesktopCarousel> {
   Widget build(BuildContext context) {
     var showPreviousButton = false;
     var showNextButton = true;
+    
 
     if (controller.hasClients) {
       showPreviousButton = controller.offset > 0;
       showNextButton = controller.offset < controller.position.maxScrollExtent;
     }
 
-    return(Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(
-          height: 300.0,
-          width: 550.0,
-          child: Align(
-            alignment: Alignment.center,
-            child: Container(
-              height: widget.height,
-              constraints: const BoxConstraints(maxWidth: homeWidth),
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 0.0),
-                    child: Text(
-                    widget.modeHeader,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: widget.colorProfile.textColor
+          height: widget.height,
+          width: 550,
+          child: Column(
+            children: [
+
+              /// WELCOME BAR 
+              Container(
+                height: 48,
+                margin: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: widget.colorProfile.headerColor.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Text(
+                      "Welcome ${widget.modeHeader}",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: widget.colorProfile.textColor,
+                      ),
                     ),
-                  ),
-                  ),
-                  ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: desktopPadding - desktopMargin,
-                    ),
-                    scrollDirection: Axis.horizontal,
-                    primary:  false,
-                    physics: const SnappingScrollPhysics(),
-                    controller: controller,
-                    itemExtent: itemWidth,
-                    itemCount: widget.children.length,
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: widget.children[index],
-                    ),
-                  ),
-                  if (showPreviousButton)
-                    _DesktopPageButton(
-                      onTap: () {
-                        controller.animateTo(
-                          controller.offset - itemWidth, 
-                          duration: const Duration(milliseconds: 200), 
-                          curve: Curves.easeOut
+
+                    IconButton(
+                      icon: Icon(
+                        Icons.settings,
+                        color: widget.colorProfile.textColor,
+                      ),
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProfileSettingsPage(
+                              colorProfile: widget.colorProfile,
+                            ),
+                          ),
                         );
+
+                        if (context.mounted) {
+                          final homeState = context.findAncestorStateOfType<HomePageState>();
+                          await homeState?.loadTheme();
+                        }
                       },
                     ),
-                  if (showNextButton)
-                    _DesktopPageButton(
-                      isEnd: true,
-                      colorProfile: widget.colorProfile,
-                      onTap: () {
-                        controller.animateTo(
-                          controller.offset + itemWidth, 
-                          duration: const Duration(milliseconds: 200), 
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                    )
-                ],
+                  ],
+                ),
               ),
-            ),
+
+              ///  CAROUSEL
+              Expanded(
+                child: Stack(
+                  children: [
+
+                    ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: desktopPadding - desktopMargin,
+                      ),
+                      scrollDirection: Axis.horizontal,
+                      physics: const SnappingScrollPhysics(),
+                      controller: controller,
+                      itemExtent: itemWidth,
+                      itemCount: widget.children.length,
+                      itemBuilder: (context, index) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: widget.children[index],
+                      ),
+                    ),
+
+                    if (showPreviousButton)
+                      _DesktopPageButton(
+                        onTap: () {
+                          controller.animateTo(
+                            controller.offset - itemWidth,
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeOut,
+                          );
+                        },
+                      ),
+
+                    if (showNextButton)
+                      _DesktopPageButton(
+                        isEnd: true,
+                        colorProfile: widget.colorProfile,
+                        onTap: () {
+                          controller.animateTo(
+                            controller.offset + itemWidth,
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        
       ],
-    )
     );
   }
 }
