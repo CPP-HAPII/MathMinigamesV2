@@ -243,6 +243,8 @@ class SeriesHomePageState extends State<SeriesHomePage> {
     logger.i("Sequence selected ${widget.sequenceData != null ? "with" : "without"} filtering. "
         "Number of questions selected: ${questions.length}. Sequence Name: ${widget.sequenceData?.name ?? "N/A"}");
 
+    logger.i("Language assist level for this series: ${widget.langAssist != null ? widget.langAssist.toString() : "None"}");
+    
     for (GameData gameData in questions) {
           if (gameData is PlaybackGameData) {
             PlaybackGameData playbackGameData = gameData;

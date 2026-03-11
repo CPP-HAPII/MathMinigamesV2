@@ -13,6 +13,8 @@ import 'package:onwards/pages/create_sequence.dart';
 import 'package:onwards/pages/create_question.dart';
 import 'package:onwards/pages/components/lang_assist.dart';
 import 'package:onwards/pages/profile_settings.dart';
+import 'package:onwards/pages/components/assist_controller.dart';
+import 'package:onwards/pages/components/theme_controller.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -98,11 +100,10 @@ class HomePageState extends State<HomePage> {
   final Future<SharedPreferencesWithCache> _prefs =
     SharedPreferencesWithCache.create(
       cacheOptions: const SharedPreferencesWithCacheOptions(
-        allowList: <String>{'theme_id', 'sequence_id', 'lang_assist_level', 'correct', 'missed', 'mastered_topics', 'weak_topics', 'score'}
+        allowList: <String>{'sequence_id', 'lang_assist_level', 'correct', 'missed', 'mastered_topics', 'weak_topics', 'score'}
       )
     );
 
-  late Future<int> themeId;
   late Future<int> correctCounter;
   late Future<int> missedCounter;
   late Future<List<String>> masteredTopicList;
@@ -114,18 +115,17 @@ class HomePageState extends State<HomePage> {
   int selected = 0;
 
   SequenceData? currentSequence;
-  LanguageAssistLevel? currentLangAssist;
 
-  final maxThemes = 6;
+  late ColorProfile currentProfile = greenFlavor;
+  late LanguageAssistLevel currentLangAssist;
 
-  ColorProfile currentProfile = greenFlavor;
   Future<void> loadTheme() async {
     final SharedPreferencesWithCache prefs = await _prefs;
     int? themeIndex = (prefs.getInt('theme_id') ?? 0);
 
     setState(() {
-      currentProfile = _getProfileByIndex(themeIndex);
-    });
+    currentProfile = _getProfileByIndex(themeIndex);
+  });
   }
 
   Future<void> loadSequence() async {
@@ -212,9 +212,9 @@ class HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    themeId = _prefs.then((SharedPreferencesWithCache prefs) {
-      return prefs.getInt('theme_id') ?? 0;
-    });
+    ThemeController.load();
+    AssistController.load();
+
     correctCounter = _prefs.then((SharedPreferencesWithCache prefs) {
       return prefs.getInt('correct') ?? 0;
     });
@@ -233,7 +233,13 @@ class HomePageState extends State<HomePage> {
     });
     sequenceId = _loadSequenceIndex();
     _loadAssistLevel();
-    loadTheme();
+    currentProfile = ThemeController.current.value;
+
+    ThemeController.current.addListener(() {
+      setState(() {
+        currentProfile = ThemeController.current.value;
+      });
+    });
   }
 
   @override
@@ -248,7 +254,7 @@ class HomePageState extends State<HomePage> {
           colorProfile: currentProfile,
           difficultyType: DifficultyType.easy,
           sequenceData: currentSequence,
-          langAssist: levels[selected],
+          langAssist: AssistController.current.value,
           userId: widget.userId, // Pass userId to SeriesHomePage
         ),
         keyId: 5,
@@ -257,7 +263,7 @@ class HomePageState extends State<HomePage> {
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
         sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
-        langAssist: currentLangAssist,
+        langAssist: AssistController.current.value,
       ),
       /*
       GameCard(
@@ -307,6 +313,7 @@ class HomePageState extends State<HomePage> {
                       CarouselCardItem(
                         child: 
                           DesktopCarousel(
+                            key: ValueKey(currentProfile.idKey),
                             height: minHeight,
                             colorProfile: currentProfile,
                             modeHeader: widget.userId,
@@ -521,7 +528,6 @@ class DesktopCarousel extends StatefulWidget {
   final ColorProfile colorProfile;
   final String modeHeader;
 
-
   @override
   DesktopCarouselState createState() => DesktopCarouselState();
 }
@@ -601,10 +607,7 @@ class DesktopCarouselState extends State<DesktopCarousel> {
                           ),
                         );
 
-                        if (context.mounted) {
-                          final homeState = context.findAncestorStateOfType<HomePageState>();
-                          await homeState?.loadTheme();
-                        }
+                        // Reload theme after returning from settings
                       },
                     ),
                   ],

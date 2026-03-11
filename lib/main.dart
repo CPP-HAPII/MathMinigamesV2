@@ -4,13 +4,14 @@ import 'package:onwards/pages/home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:onwards/pages/login_page.dart';
+import 'package:onwards/pages/components/assist_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
+  await AssistController.load();
   // Ensure banks are loaded before starting the app
   await gameDataBank.initBanks();
   await sequenceFiltersBank.initSequenceBank();

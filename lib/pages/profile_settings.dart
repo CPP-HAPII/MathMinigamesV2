@@ -7,6 +7,10 @@ import 'package:onwards/pages/constants.dart';
 import 'package:onwards/pages/components/lang_assist.dart';
 import 'package:onwards/pages/create_sequence.dart';
 import 'package:onwards/pages/create_question.dart';
+import 'package:onwards/pages/home.dart';
+import 'package:onwards/pages/components/assist_controller.dart';
+import 'package:onwards/pages/components/lang_assist.dart';
+import 'package:onwards/pages/components/theme_controller.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,88 +31,77 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   late LanguageAssistLevel? currentLangAssist;
   late Future<int> themeId;
   
-  final Future<SharedPreferencesWithCache> _prefs =
-      SharedPreferencesWithCache.create(
-        cacheOptions: const SharedPreferencesWithCacheOptions(
-          allowList: <String>{'theme_id', 'sequence_id', 'lang_assist_level', 'correct', 'missed', 'mastered_topics', 'weak_topics', 'score'}
-        )
-      );
 
   final List<LanguageAssistLevel> levels = LanguageAssistLevel.values;
+
   int selected = 0;
+  int themeIndex = 0;
+  final int maxThemes = 4;
 
   @override
   void initState() {
     super.initState();
-    themeId = _prefs.then((SharedPreferencesWithCache prefs) {
-      return prefs.getInt('theme_id') ?? 0;
-    });
-    // sequenceId = _loadSequenceIndex();
-    _loadAssistLevel();
-    loadTheme();
-  }
 
-  final maxThemes = 6;
-  Future<void> loadTheme() async {
-    final SharedPreferencesWithCache prefs = await _prefs;
-    int? themeIndex = (prefs.getInt('theme_id') ?? 0);
+    AssistController.load();
+    ThemeController.load();
 
-    setState(() {
-      currentProfile = _getProfileByIndex(themeIndex);
+    currentProfile = ThemeController.current.value;
+
+    final assist = AssistController.current.value;
+
+    selected = assist.index;
+    currentLangAssist = assist;
+
+    ThemeController.current.addListener(() {
+      setState(() {
+        currentProfile = ThemeController.current.value;
+      });
     });
   }
 
   Future<void> _setLangAssistLevel(int index) async {
     if (index < 0 || index >= levels.length) return;
 
-    final prefs = await _prefs;
-    await prefs.setInt('lang_assist_level', index);
+    final level = levels[index];
+    await AssistController.set(level);
 
     setState(() {
       selected = index;
-      currentLangAssist = levels[index]; // update langAssist value
+      currentLangAssist = level;
     });
 
-    debugPrint('Language Assist level set to ${levels[index].label}');
+    debugPrint('Language Assist level set to ${level.label}');
   }
 
   void _loadAssistLevel() async {
-    final saved = await AssistLevelService.load();
+    await AssistController.load();
+
+    final saved = AssistController.current.value;
+
     setState(() {
       selected = saved.index;
       currentLangAssist = saved;
     });
   }
 
-  Future<void> _incrementCounter() async {
-    final SharedPreferencesWithCache prefs = await _prefs;
-    if ((prefs.getInt('theme_id') ?? 0) >= maxThemes) {
-      return;
+  Future<void> _incrementTheme() async {
+    themeIndex++;
+
+    if (themeIndex >= maxThemes) {
+      themeIndex = 0;
     }
-    final int counter = (prefs.getInt('theme_id') ?? 0) + 1;
-    setState(() {
-      themeId = prefs.setInt('theme_id', counter).then((_) {
-        print('Updating theme...');
-        currentProfile = _getProfileByIndex(counter);
-        return counter;
-      });
-    });
+
+    await ThemeController.set(themeIndex);
   }
 
-  Future<void> _decrementCounter() async {
-    final SharedPreferencesWithCache prefs = await _prefs;
-    if ((prefs.getInt('theme_id') ?? 0) <= 0) {
-      return;
+  Future<void> _decrementTheme() async {
+    themeIndex--;
+
+    if (themeIndex < 0) {
+      themeIndex = maxThemes - 1;
     }
 
-    final int counter = (prefs.getInt('theme_id') ?? 0) - 1;
-    setState(() {
-      themeId = prefs.setInt('theme_id', counter).then((_) {
-        print('Updating theme...');
-        currentProfile = _getProfileByIndex(counter);
-        return counter;
-      });
-    });
+    await ThemeController.set(themeIndex);
   }
 
   ColorProfile _getProfileByIndex(int index) {
@@ -186,7 +179,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                       message: "Previous Theme",
                       child: ElevatedButton(
                         style: ButtonStyle(backgroundColor: MaterialStateProperty.all(currentProfile.buttonColor)),
-                        onPressed: _decrementCounter,
+                        onPressed: _decrementTheme,
                         child: Icon(Icons.arrow_left, color: currentProfile.textColor),
                       ),
                     ),
@@ -204,34 +197,18 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                       preferBelow: true,
                       child: ElevatedButton(
                         style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
-                        onPressed: _incrementCounter,
+                        onPressed: _incrementTheme,
                         child: Icon(Icons.arrow_right, color: currentProfile.textColor),
                       ),
                     )
                   ],
                 ),
-                FutureBuilder<int>(
-                  future: _prefs.then((prefs) => prefs.getInt('theme_id') ?? 0),
-                  builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                    switch (snapshot.connectionState) {
-                      case ConnectionState.none:
-                      case ConnectionState.waiting:
-                        return const CircularProgressIndicator();
-                      case ConnectionState.active:
-                      case ConnectionState.done:
-                        if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}', style: TextStyle(color: currentProfile.textColor));
-                        } else {
-                          return Text(
-                            'Current theme: ${_getProfileByIndex(snapshot.data ?? 0).idKey}',
-                            style: TextStyle(
-                              color: currentProfile.textColor,
-                            ),
-                          );
-                        }
-                    }
-                  },
-                ),
+                Text(
+                  'Current theme: ${currentProfile.idKey}',
+                  style: TextStyle(
+                    color: currentProfile.textColor,
+                  ),
+                )
               ],
             ),
           ),

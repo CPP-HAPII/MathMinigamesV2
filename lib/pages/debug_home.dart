@@ -11,6 +11,9 @@ import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:onwards/pages/components/theme_controller.dart';
+import 'package:onwards/pages/components/assist_controller.dart';
+
 class DebugHomePage extends StatefulWidget {
   const DebugHomePage ({super.key});
 
@@ -281,7 +284,7 @@ class DebugHomePageState extends State<DebugHomePage> {
                     child: DesktopCarousel(
                       height: minHeight,
                       modeHeader: "Debug Mode: Select a game to play that instance of it",
-                      colorProfile: currentProfile, 
+                      colorProfile: currentProfile,
                       children: gameCards,
                     )
                   )
