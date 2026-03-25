@@ -251,7 +251,6 @@ class HomePageState extends State<HomePage> {
         ),
         gameRoute: '/play-mode', 
         gameWidget: SeriesHomePage(
-          colorProfile: currentProfile,
           difficultyType: DifficultyType.easy,
           sequenceData: currentSequence,
           langAssist: AssistController.current.value,
@@ -749,7 +748,7 @@ class GameCard extends StatelessWidget {
     required this.gameRoute, 
     required this.keyId,
     this.imageAsset,
-    this.gameWidget = const FillInActivityScreen(colorProfile: greenFlavor),
+    this.gameWidget = const FillInActivityScreen(),
     required this.title,
     required this.subtitle,
     required this.styleMode,

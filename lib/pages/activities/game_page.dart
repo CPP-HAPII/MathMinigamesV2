@@ -7,6 +7,7 @@ import 'package:onwards/pages/constants.dart';
 import 'package:onwards/pages/data_manager.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:onwards/pages/components/theme_controller.dart';
 
 abstract class GamePage extends StatefulWidget {
   const GamePage({
@@ -21,7 +22,7 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
   final Future<SharedPreferencesWithCache> userSessionCache =
       SharedPreferencesWithCache.create(
           cacheOptions: const SharedPreferencesWithCacheOptions(
-              allowList: <String>{'correct', 'theme_id', 'missed', 'score', 'highscore'}));
+              allowList: <String>{'correct', 'missed', 'score', 'highscore'}));
       
   late Future<int> correctCount;
   late Future<int> missedCount;
@@ -32,7 +33,6 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
   int? cachedHighScore;
 
   late Future<int> themeId;
-  ColorProfile? cachedTheme;
 
   late ColorProfile currentProfile = greenFlavor;
 
@@ -57,7 +57,11 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
   @override
   void initState() {
     super.initState();
-    loadTheme();
+    ThemeController.load();
+    currentProfile = widget.colorProfile;
+
+    
+
 
     correctCount = userSessionCache.then((SharedPreferencesWithCache prefs) {
       return prefs.getInt('correct') ?? 0;
@@ -71,9 +75,7 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
     gameHighscore = userSessionCache.then((SharedPreferencesWithCache prefs) {
       return prefs.getInt('highscore') ?? 0;
     });
-    themeId = userSessionCache.then((SharedPreferencesWithCache prefs) {
-      return prefs.getInt('theme_id') ?? 0;
-    });
+
     
     _bottomRightController1 = ConfettiController(duration: const Duration(seconds: 5));
     _bottomRightController2 = ConfettiController(duration: const Duration(seconds: 5));
@@ -84,6 +86,53 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
     startTimeStamp = Timestamp.now();
     skillsTested = [];
     questionId = "unknown";
+  }
+
+  BoxDecoration buildTextCardDecoration(ColorProfile profile) {
+    return BoxDecoration(
+      color: profile.backgroundColor.withValues(alpha: 0.78),
+      borderRadius: BorderRadius.circular(22),
+      border: Border.all(
+        color: profile.buttonColor.withValues(alpha: 0.45),
+        width: 1.5,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.08),
+          blurRadius: 14,
+          offset: const Offset(0, 8),
+        ),
+      ],
+    );
+  }
+
+  Widget buildTextCard({
+    required ColorProfile profile,
+    required Widget child,
+    double maxWidth = 760,
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(
+      horizontal: 20,
+      vertical: 18,
+    ),
+    EdgeInsetsGeometry margin = const EdgeInsets.symmetric(
+      horizontal: 16,
+      vertical: 8,
+    ),
+  }) {
+    return Container(
+      width: double.infinity,
+      margin: margin,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: Container(
+            padding: padding,
+            decoration: buildTextCardDecoration(profile),
+            child: child,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -111,19 +160,11 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
 
   Future<void> loadTheme() async {
     final SharedPreferencesWithCache prefs = await userSessionCache;
-    int? themeIndex = (prefs.getInt('theme_id') ?? 0);
     setState(() {
-      cachedTheme = getProfileByIndex(themeIndex);
-      logger.i("Loaded theme: ${cachedTheme?.idKey}");
-    });
-    // check if cached theme is diffrent from the current one
-    if (cachedTheme?.idKey != widget.colorProfile.idKey) {
-      logger.w("Cached theme did not match the current one. Current: ${widget.colorProfile.idKey}, Cached: ${cachedTheme?.idKey}");
-      currentProfile = cachedTheme!;
-    } else {
-      logger.i("Both themes match");
+      logger.i("Loaded theme: ${widget.colorProfile.idKey}");
       currentProfile = widget.colorProfile;
-    }
+    });
+    
   }
 
   Future<void> increaseCorrectCount() async {

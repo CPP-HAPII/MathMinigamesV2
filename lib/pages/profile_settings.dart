@@ -73,16 +73,6 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     debugPrint('Language Assist level set to ${level.label}');
   }
 
-  void _loadAssistLevel() async {
-    await AssistController.load();
-
-    final saved = AssistController.current.value;
-
-    setState(() {
-      selected = saved.index;
-      currentLangAssist = saved;
-    });
-  }
 
   Future<void> _incrementTheme() async {
     themeIndex++;

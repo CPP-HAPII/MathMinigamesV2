@@ -20,6 +20,7 @@ import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onwards/pages/components/lang_assist.dart';
+import 'package:onwards/pages/components/theme_controller.dart';
 
 class GameTestPage extends StatelessWidget {
   const GameTestPage({
@@ -44,7 +45,6 @@ class GameTestPage extends StatelessWidget {
       alignment: Alignment.center,
       child: SeriesHomePage(
         maxQuestCount: 10,
-        colorProfile: colorProfile,
         difficultyType: difficultyType,
         sequenceData: sequenceData,
         langAssist: langAssist,
@@ -82,7 +82,6 @@ enum DifficultyType {
 class SeriesHomePage extends StatefulWidget {
 
   int maxQuestCount;
-  final ColorProfile colorProfile;
   final DifficultyType difficultyType;
   final SequenceData? sequenceData;
   final LanguageAssistLevel? langAssist;
@@ -91,7 +90,6 @@ class SeriesHomePage extends StatefulWidget {
   SeriesHomePage({
     super.key, 
     this.maxQuestCount = 10,
-    required this.colorProfile,
     required this.difficultyType,
     this.sequenceData,
     this.langAssist,
@@ -114,6 +112,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
   late Future<int> gameScore;
   late Future<int> gameHighscore;
 
+  List<Widget Function()> pageBuilders = [];
   List<Widget> pageTypesList = [];
   List<int> randomPageOrderList = [];
   List<Widget> fixedPageOrderList = [];
@@ -122,7 +121,9 @@ class SeriesHomePageState extends State<SeriesHomePage> {
   double progressForBar = 0.0;
   int currentScore = 0;
   bool isHighScoreUpdated = false;
-  LanguageAssistLevel? langAssist;
+
+  late final ColorProfile colorProfile;
+  late final LanguageAssistLevel? langAssist;
 
 
   // Data for database. These are the sequence start times
@@ -208,6 +209,16 @@ class SeriesHomePageState extends State<SeriesHomePage> {
   @override
   void initState() {
     super.initState();
+    langAssist = widget.langAssist;
+
+    pageBuilders = [
+      () => FillInActivityScreen(langAssist: langAssist),
+      () => JumbleActivityScreen(langAssist: langAssist),
+      () => PlaybackActivityScreen(langAssist: langAssist),
+      () => ReadingActivityScreen(langAssist: langAssist),
+      () => TypeActivityScreen(langAssist: langAssist),
+    ];
+
     correctCount = _prefs.then((SharedPreferencesWithCache prefs) {
       return prefs.getInt('correct') ?? 0;
     });
@@ -248,29 +259,29 @@ class SeriesHomePageState extends State<SeriesHomePage> {
     for (GameData gameData in questions) {
           if (gameData is PlaybackGameData) {
             PlaybackGameData playbackGameData = gameData;
-            PlaybackActivityScreen playbackGame = PlaybackActivityScreen.fromLevelSelect(profile: widget.colorProfile, gameData: playbackGameData, langAssist: widget.langAssist, );
+            PlaybackActivityScreen playbackGame = PlaybackActivityScreen.fromLevelSelect(gameData: playbackGameData, langAssist: widget.langAssist, );
             fixedPageOrderList.add(playbackGame);
           }
 
           if (gameData is ReadAloudGameData) {
             ReadAloudGameData readAloudGameData = gameData;
-            ReadingActivityScreen readingGame = ReadingActivityScreen.fromLevelSelect(readingData: readAloudGameData, profile: widget.colorProfile, langAssist: widget.langAssist, );
+            ReadingActivityScreen readingGame = ReadingActivityScreen.fromLevelSelect(readingData: readAloudGameData, langAssist: widget.langAssist, );
             fixedPageOrderList.add(readingGame);
           }
 
           if (gameData is JumbleGameData) {
-            JumbleActivityScreen jumbleGame = JumbleActivityScreen.fromLevelSelect(jumbleData: gameData, profile: widget.colorProfile, langAssist: widget.langAssist, );
+            JumbleActivityScreen jumbleGame = JumbleActivityScreen.fromLevelSelect(jumbleData: gameData, langAssist: widget.langAssist, );
             fixedPageOrderList.add(jumbleGame);
           }
 
           if (gameData is FillBlanksGameData) {
-            FillInActivityScreen fillGame = FillInActivityScreen.fromLevelSelect(fillData: gameData, profile: widget.colorProfile, langAssist: widget.langAssist, );
+            FillInActivityScreen fillGame = FillInActivityScreen.fromLevelSelect(fillData: gameData, langAssist: widget.langAssist, );
             fixedPageOrderList.add(fillGame);
           }
 
           if (gameData is TypingGameData) {
             TypingGameData typingGameData = gameData;
-            TypeActivityScreen typingGame = TypeActivityScreen.fromLevelSelect(profile: widget.colorProfile, typingData: typingGameData, langAssist: widget.langAssist, );
+            TypeActivityScreen typingGame = TypeActivityScreen.fromLevelSelect(typingData: typingGameData, langAssist: widget.langAssist, );
             fixedPageOrderList.add(typingGame);
           }
       }
@@ -281,90 +292,66 @@ class SeriesHomePageState extends State<SeriesHomePage> {
 
   /// Fill the selectedPageOrder list with X number of random questions, where X is the max number of questions in a series
   void selectRandPages() {
-    if (pageTypesList.isEmpty) {
-      logger.e("Error: pageTypesList is empty. Cannot select random pages.");
+    if (pageBuilders.isEmpty) {
+      logger.e("pageBuilders is empty!");
       return;
     }
 
-    if (widget.maxQuestCount > pageTypesList.length) {
-      logger.w("Warning: maxQuestCount exceeds available pages. Adjusting to available pages.");
-      widget.maxQuestCount = pageTypesList.length;
-    }
-
-    final random = Random();
-    int randStartIndex = random.nextInt(pageTypesList.length);
     randomPageOrderList.clear();
-    questionCount = pageTypesList.length;
-
-    for (int i =0; i < widget.maxQuestCount; i++) {
-      int next = (randStartIndex + i) % pageTypesList.length;
-      randomPageOrderList.add(next);
+    final random = Random();
+    int randStart = random.nextInt(pageBuilders.length);
+    for (int i = 0; i < widget.maxQuestCount; i++) {
+      randomPageOrderList.add((randStart + i) % pageBuilders.length);
     }
-    logger.d('Color profile for this series: ${widget.colorProfile.idKey}');
-    logger.d('Order for this session: $randomPageOrderList');
+
+    logger.d("Random order: $randomPageOrderList, ColorProfile: ${colorProfile.idKey}");
   }
 
   /// Navigate to the next page listed in the selectPageOrder and construct the page for navigation
-  void navigateToNextRandom(int currentIndex) {
-    if (currentIndex < randomPageOrderList.length) {
-      increaseProgress(progressForBar);
-      currentProgress++;
-      progressForBar = (currentProgress / randomPageOrderList.length).roundToDouble();
-      logger.d("Profile for the next page is: ${widget.colorProfile.idKey}, Question Number: $currentProgress, Progress: $progressForBar");
-      
-
+  void navigateToNextRandom(int index) {
+    if (index >= randomPageOrderList.length) {
+      endTime = Timestamp.now();
       Navigator.push(
-        context, 
+        context,
         MaterialPageRoute(
-          builder: (context) => pageTypesList[randomPageOrderList[currentIndex]],
+          builder: (_) => SeriesEndPage(
+            seriesCount: randomPageOrderList.length,
+          ),
         ),
-      ).then((_) {
-        // recurssively navigate to next until we can't
-        navigateToNextRandom(currentIndex + 1);
-      });
-    } else {
-      logger.d("Reached the end of the navigation, showing end results");
-      increaseProgress(1.0);
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => SeriesEndPage(
-          colorProfile: widget.colorProfile, 
-          seriesCount: randomPageOrderList.length,
-        ))
       );
+      return;
     }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => pageBuilders[randomPageOrderList[index]](),
+      ),
+    ).then((_) => navigateToNextRandom(index + 1));
   }
 
   /// Naviagate thru the fixed series pages until we iterated thru it completely. Note: page list may have less
   /// questions than the number defined in MaxQuestCount
-  void navigateFixedSeries(int currentIndex) {
-    if (currentIndex < fixedPageOrderList.length) {
-      increaseProgress(progressForBar); 
-      currentProgress++;
-      progressForBar = currentProgress / fixedPageOrderList.length;
-
+    void navigateFixedSeries(int index) {
+    if (index >= fixedPageOrderList.length) {
+      endTime = Timestamp.now();
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => fixedPageOrderList[currentIndex],
+          builder: (_) => SeriesEndPage(
+            seriesCount: fixedPageOrderList.length,
+          ),
         ),
-      ).then((_) {
-        navigateFixedSeries(currentIndex + 1);
-      });
-    } else {
-      // set progress to max
-      increaseProgress(1.0);
-      increaseHighScore();
-      endTime = Timestamp.now();
-      logger.i("Stopped quiz timer");
-      writeData();
-
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => SeriesEndPage(
-          colorProfile: widget.colorProfile, 
-          seriesCount: fixedPageOrderList.length,
-        ))
       );
+      return;
     }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => fixedPageOrderList[index],
+      ),
+    ).then((_) => navigateFixedSeries(index + 1));
   }
 
   Future<void> writeData() async {
@@ -386,69 +373,62 @@ class SeriesHomePageState extends State<SeriesHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    logger.d("This GameTest has a profile of: ${widget.colorProfile.idKey}");
-    
-    // Add the page types to the page list to pick from
-    pageTypesList.addAll(List.of([
-      FillInActivityScreen(colorProfile: widget.colorProfile, langAssist: widget.langAssist),
-      JumbleActivityScreen(colorProfile: widget.colorProfile, langAssist: widget.langAssist),
-      PlaybackActivityScreen(colorProfile: widget.colorProfile, langAssist: widget.langAssist),
-      ReadingActivityScreen(colorProfile: widget.colorProfile, langAssist: widget.langAssist),
-      TypeActivityScreen(colorProfile: widget.colorProfile, langAssist: widget.langAssist)
-    ]));
+    return ValueListenableBuilder<ColorProfile>(
+      valueListenable: ThemeController.current,
+      builder: (context, colorProfile, _) {
 
-    String buttonLabel = "Play Game";
-    /*
-    if (widget.difficultyType.equals(DifficultyType.easy)) {
-      buttonLabel = "Easy Mode";
-    } else if (widget.difficultyType.equals(DifficultyType.intermediate)) {
-      buttonLabel = "Intermediate Mode";
-    } else if (widget.difficultyType.equals(DifficultyType.hard)) {
-      buttonLabel = "Hard Mode";
-    }
-    */
-    
+        logger.d("This GameTest has a profile of: ${colorProfile.idKey}");
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Play Mode", style: TextStyle(color: widget.colorProfile.textColor)),
-        backgroundColor: widget.colorProfile.headerColor,
-        actions: const [ScoreDisplayAction(), CalcButton()],
-      ),
-      body: Container(
-        decoration: widget.colorProfile.backBoxDecoration,
-        padding: const EdgeInsets.only(top: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Align(
-                alignment: Alignment.center,
-                child: Text(
-                  "Click to start the question series. You will navigate through ${gameDataBank.getFilteredQuestions(widget.sequenceData!).length} questions. You can use the calculator on the top-right of the screen to help you answer the questions.",
-                  style: TextStyle(
-                      color: widget.colorProfile.textColor, fontSize: 16),
+        String buttonLabel = "Play Game";
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              "Play Mode",
+              style: TextStyle(color: colorProfile.textColor),
+            ),
+            backgroundColor: colorProfile.headerColor,
+            actions: const [ScoreDisplayAction(), CalcButton()],
+          ),
+          body: Container(
+            decoration: colorProfile.backBoxDecoration,
+            padding: const EdgeInsets.only(top: 40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    "Click to start the question series. You will navigate through ${gameDataBank.getFilteredQuestions(widget.sequenceData!).length} questions.",
+                    style: TextStyle(
+                      color: colorProfile.textColor,
+                      fontSize: 16,
+                    ),
+                  ),
                 ),
-              ),
-            Align(
-                alignment: Alignment.center,
-                child: ElevatedButton(
+                Align(
+                  alignment: Alignment.center,
+                  child: ElevatedButton(
                     style: ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(
-                            widget.colorProfile.buttonColor)),
+                      backgroundColor:
+                          WidgetStatePropertyAll(colorProfile.buttonColor),
+                    ),
                     onPressed: () {
-                      if (widget.difficultyType.equals(DifficultyType.random)) {
-                        // select up to X pages for a random selection. Dynamically done at user request!
+                      if (widget.difficultyType
+                          .equals(DifficultyType.random)) {
                         selectRandPages();
                       } else {
-                        // select up to X pages for a fixed selection based on difficulty.  Dynamically done at user request!
                         selectFixedPages();
                       }
 
-                      resetCorrectCount(); // In case count has something in it
+                      resetCorrectCount();
+
                       try {
                         startTime = Timestamp.now();
                         logger.i("Started quiz timer");
-                        if (widget.difficultyType.equals(DifficultyType.random)) {
+
+                        if (widget.difficultyType
+                            .equals(DifficultyType.random)) {
                           navigateToNextRandom(0);
                         } else {
                           navigateFixedSeries(0);
@@ -459,12 +439,15 @@ class SeriesHomePageState extends State<SeriesHomePage> {
                     },
                     child: Text(
                       buttonLabel,
-                      style: TextStyle(color: widget.colorProfile.textColor),
-                    )),
-              )
-          ],
-        )
-      ),
+                      style: TextStyle(color: colorProfile.textColor),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -472,14 +455,13 @@ class SeriesHomePageState extends State<SeriesHomePage> {
 class SeriesEndPage extends StatefulWidget {
   const SeriesEndPage({
     super.key, 
-    required this.colorProfile,
     this.seriesCount = 5,
-    this.showNewScore = false
+    this.showNewScore = false,
+    this.colorProfile = greenFlavor,
   });
-
-  final ColorProfile colorProfile;
   final int seriesCount;
   final bool showNewScore;
+  final ColorProfile colorProfile;
 
   @override
   State<StatefulWidget> createState() => SeriesEndPageState();

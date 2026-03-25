@@ -16,25 +16,23 @@ import 'package:onwards/pages/activities/reading/speech_to_text_helper.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:onwards/pages/components/lang_assist.dart';
 import 'package:onwards/pages/components/hover_translated_text.dart';
+import 'package:onwards/pages/components/theme_controller.dart';
 
 const ReadAloudGameData dummyData = ReadAloudGameData(displayedProblem: "", multiAcceptedAnswers: [], skills: []);
 
 class ReadingActivityScreen extends StatelessWidget {
   const ReadingActivityScreen({
     super.key,
-    this.colorProfile = greenFlavor,
     this.readingGameData = dummyData,
     this.fromLevelSelect = false,
     this.langAssist,
   });
 
-  final ColorProfile colorProfile;
   final ReadAloudGameData readingGameData;
   final bool fromLevelSelect;
   final LanguageAssistLevel? langAssist;
 
-  const ReadingActivityScreen.fromLevelSelect({required ReadAloudGameData readingData, required ColorProfile profile, super.key, this.langAssist}) :
-    colorProfile = profile,
+  const ReadingActivityScreen.fromLevelSelect({required ReadAloudGameData readingData, super.key, this.langAssist}) :
     readingGameData = readingData,
     fromLevelSelect = true;
 
@@ -42,40 +40,45 @@ class ReadingActivityScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     ReadAloudGameData randomData = gameDataBank.getRandomReadingElement();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Read Aloud Game', style: TextStyle(color: colorProfile.textColor)),
-        backgroundColor: colorProfile.headerColor,
-        actions: const [ScoreDisplayAction(), CalcButton()],
-        automaticallyImplyLeading: false,
-      ),
-      body: Container(
-        decoration: colorProfile.backBoxDecoration,
-        padding: const EdgeInsets.only(top: 40),
-        child: !fromLevelSelect ?
-          AudioTranscriptionWidget(
-            key: const Key('1'),
-            acceptedAnswers: randomData.multiAcceptedAnswers,
-            questionLabel: randomData.displayedProblem,
-            titleText: randomData.writtenPrompt,
-            useNumWordProtocol: randomData.useNumWordProtocol,
-            colorProfile: colorProfile,
-            skills: randomData.skills,
-            id: randomData.id,
-            langAssist: langAssist,
-          ) :
-          AudioTranscriptionWidget(
-            key: const Key('1'),
-            acceptedAnswers: readingGameData.multiAcceptedAnswers,
-            questionLabel: readingGameData.displayedProblem,
-            titleText: readingGameData.writtenPrompt,
-            useNumWordProtocol: readingGameData.useNumWordProtocol,
-            colorProfile: colorProfile,
-            skills: readingGameData.skills,
-            id: readingGameData.id,
-            langAssist: langAssist,
+    return ValueListenableBuilder<ColorProfile>(
+      valueListenable: ThemeController.current,
+      builder: (context, colorProfile, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Read Aloud Game', style: TextStyle(color: colorProfile.textColor)),
+            backgroundColor: colorProfile.headerColor,
+            actions: const [ScoreDisplayAction(), CalcButton()],
+            automaticallyImplyLeading: false,
+          ),
+          body: Container(
+            decoration: colorProfile.backBoxDecoration,
+            padding: const EdgeInsets.only(top: 40),
+            child: !fromLevelSelect ?
+              AudioTranscriptionWidget(
+                key: const Key('1'),
+                acceptedAnswers: randomData.multiAcceptedAnswers,
+                questionLabel: randomData.displayedProblem,
+                titleText: randomData.writtenPrompt,
+                useNumWordProtocol: randomData.useNumWordProtocol,
+                colorProfile: colorProfile,
+                skills: randomData.skills,
+                id: randomData.id,
+                langAssist: langAssist,
+              ) :
+              AudioTranscriptionWidget(
+                key: const Key('1'),
+                acceptedAnswers: readingGameData.multiAcceptedAnswers,
+                questionLabel: readingGameData.displayedProblem,
+                titleText: readingGameData.writtenPrompt,
+                useNumWordProtocol: readingGameData.useNumWordProtocol,
+                colorProfile: colorProfile,
+                skills: readingGameData.skills,
+                id: readingGameData.id,
+                langAssist: langAssist,
+              )
           )
-      )
+        );
+      },
     );
   }
 }
@@ -205,7 +208,7 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
     bool isValid;
     
     return Container(
-      decoration: currentProfile.backBoxDecoration,
+      color: Colors.transparent,
       child: Stack(
         children: [
           addConfettiBlasters(),
@@ -213,17 +216,20 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
             child: Column(
               children: [
                 SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-                Text(
-                  widget.titleText,
-                  style: TextStyle(
-                    color: currentProfile.textColor, 
-                    fontSize: 30,
+                buildTextCard(
+                  profile: currentProfile,
+                  child: Text(
+                    widget.titleText,
+                    style: TextStyle(
+                      color: currentProfile.textColor,
+                      fontSize: 30,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
 
-                Padding(
-                  padding: const EdgeInsets.all(8),
+                buildTextCard(
+                  profile: currentProfile,
                   child: HoverTranslatedText(
                     text: widget.questionLabel,
                     colorProfile: currentProfile,
@@ -260,8 +266,9 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
                           targetLanguage: 'es',
                         ),
                       ),
-                Padding(
-                  padding: const EdgeInsets.all(8),
+                buildTextCard(
+                  profile: currentProfile,
+                  maxWidth: 820,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -269,22 +276,28 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
                         "Your phrase",
                         style: TextStyle(
                           fontSize: 14,
-                          color: currentProfile.textColor
+                          color: currentProfile.textColor,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Text(
-                        listenNotifier,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: currentProfile.textColor
+                      if (listenNotifier.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          listenNotifier,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: currentProfile.textColor,
+                          ),
                         ),
-                      ),
+                      ],
+                      const SizedBox(height: 12),
                       Text(
                         _transcribedText,
                         style: TextStyle(
                           fontSize: 18,
-                          color: currentProfile.textColor
+                          color: currentProfile.textColor,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
                       FloatingActionButton(

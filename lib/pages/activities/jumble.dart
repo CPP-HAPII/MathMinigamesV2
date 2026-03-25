@@ -13,7 +13,7 @@ import 'package:onwards/pages/translation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onwards/pages/components/lang_assist.dart';
 import 'package:onwards/pages/components/hover_translated_text.dart';
-
+import 'package:onwards/pages/components/theme_controller.dart';
 
 import '../constants.dart';
 
@@ -21,67 +21,67 @@ const JumbleGameData dummyData = JumbleGameData(displayedProblem: '', multiAccep
 
 class JumbleActivityScreen extends StatelessWidget {
   final JumbleGameData jumbleGameData;
-  final ColorProfile colorProfile;
   final bool fromLevelSelect;
   final LanguageAssistLevel? langAssist;
 
   const JumbleActivityScreen({
     super.key,
-    this.colorProfile = greenFlavor,
     this.jumbleGameData = dummyData,
     this.fromLevelSelect = false,
     this.langAssist,
   });
 
-  const JumbleActivityScreen.fromLevelSelect({required JumbleGameData jumbleData, required ColorProfile profile, super.key, this.langAssist}) :
-    colorProfile = profile,
+  const JumbleActivityScreen.fromLevelSelect({required JumbleGameData jumbleData, super.key, this.langAssist}) :
     jumbleGameData = jumbleData,
     fromLevelSelect = true;
 
   @override
   Widget build(BuildContext context) {
-    JumbleGameData randomGameData = gameDataBank.getRandomJumbleElement();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Word Jumble Game', style: TextStyle(color: colorProfile.textColor)),
-        backgroundColor: colorProfile.headerColor,
-        actions: const [ ScoreDisplayAction(), CalcButton()],
-        automaticallyImplyLeading: false,
-      ),
-      body: Container(
-        decoration: colorProfile.backBoxDecoration,
-        padding: const EdgeInsets.only(top: 40),
-        child: !fromLevelSelect ?
-          GameForm(
-            // Using the bank's random data
-            answers: randomGameData.multiAcceptedAnswers, 
-            questionLabel: randomGameData.displayedProblem, 
-            maxSelectedAnswers: randomGameData.getMinSelection(), 
-            buttonOptions: randomGameData.optionList,
-            titleQuestion: randomGameData.writtenPrompt,
-            showArithmitic: true,
-            colorProfile: colorProfile,
-            skills: randomGameData.skills,
-            scoreValue: randomGameData.score,
-            id: randomGameData.id,
-            langAssist: langAssist,
-          ) :
-          GameForm(
-            // using the passed gameData
-            answers: jumbleGameData.multiAcceptedAnswers, 
-            questionLabel: jumbleGameData.displayedProblem, 
-            maxSelectedAnswers: jumbleGameData.getMinSelection(), 
-            buttonOptions: jumbleGameData.optionList,
-            titleQuestion: jumbleGameData.writtenPrompt,
-            showArithmitic: true,
-            colorProfile: colorProfile,
-            skills: jumbleGameData.skills,
-            scoreValue: jumbleGameData.score,
-            id: jumbleGameData.id,
-            langAssist: langAssist,
-          )
-        )
+    return ValueListenableBuilder<ColorProfile>(
+      valueListenable: ThemeController.current,
+      builder: (context, colorProfile, _) {
+        JumbleGameData randomGameData = gameDataBank.getRandomJumbleElement();
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Word Jumble Game', style: TextStyle(color: colorProfile.textColor)),
+            backgroundColor: colorProfile.headerColor,
+            actions: const [ ScoreDisplayAction(), CalcButton()],
+            automaticallyImplyLeading: false,
+          ),
+          body: Container(
+            decoration: colorProfile.backBoxDecoration,
+            padding: const EdgeInsets.only(top: 40),
+            child: !fromLevelSelect ?
+              GameForm(
+                // Using the bank's random data
+                answers: randomGameData.multiAcceptedAnswers, 
+                questionLabel: randomGameData.displayedProblem, 
+                maxSelectedAnswers: randomGameData.getMinSelection(), 
+                buttonOptions: randomGameData.optionList,
+                titleQuestion: randomGameData.writtenPrompt,
+                showArithmitic: true,
+                skills: randomGameData.skills,
+                scoreValue: randomGameData.score,
+                id: randomGameData.id,
+                langAssist: langAssist,
+              ) :
+              GameForm(
+                // using the passed gameData
+                answers: jumbleGameData.multiAcceptedAnswers, 
+                questionLabel: jumbleGameData.displayedProblem, 
+                maxSelectedAnswers: jumbleGameData.getMinSelection(), 
+                buttonOptions: jumbleGameData.optionList,
+                titleQuestion: jumbleGameData.writtenPrompt,
+                showArithmitic: true,
+                colorProfile: colorProfile,
+                skills: jumbleGameData.skills,
+                scoreValue: jumbleGameData.score,
+                id: jumbleGameData.id,
+                langAssist: langAssist,
+              )
+            )
+        );
+      }
     );
   }
 }
@@ -258,7 +258,7 @@ class GameFormState extends GamePageState<GameForm> {
           part,
           style: TextStyle(
             fontSize: 18.0,
-            color: currentProfile.textColor
+            color: widget.colorProfile.textColor
           ),
         )
       ));
@@ -289,7 +289,7 @@ class GameFormState extends GamePageState<GameForm> {
           }, 
           isDisabled: _selectedAnswers.contains(option), 
           label: option,
-          colorProfile: currentProfile,
+          colorProfile: widget.colorProfile,
         ),
       );
       
@@ -302,7 +302,7 @@ class GameFormState extends GamePageState<GameForm> {
     'This should persist across restarts.', style: TextStyle(color: currentProfile.textColor)
     */
     return Container(
-      decoration: currentProfile.backBoxDecoration,
+      color: Colors.transparent,
       child: Stack(
         children: [
           addConfettiBlasters(),
@@ -310,19 +310,22 @@ class GameFormState extends GamePageState<GameForm> {
             child: Column(
                   children: [
                     SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-                  Text(
-                    widget.titleQuestion,
-                    style: TextStyle(
-                        color: currentProfile.textColor, 
+                  buildTextCard(
+                    profile: widget.colorProfile,
+                    child: Text(
+                      widget.titleQuestion,
+                      style: TextStyle(
+                        color: widget.colorProfile.textColor,
                         fontSize: 30,
                       ),
                       textAlign: TextAlign.center,
+                    ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8),
+                  buildTextCard(
+                    profile: widget.colorProfile,
                     child: HoverTranslatedText(
                       text: widget.questionLabel,
-                      colorProfile: currentProfile,
+                      colorProfile: widget.colorProfile,
                       assistLevel: assistLevel,
                     ),
                   ),
@@ -335,12 +338,12 @@ class GameFormState extends GamePageState<GameForm> {
                       child: ElevatedButton(
                         onPressed: _speakQuestion,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: currentProfile.buttonColor,
+                          backgroundColor: widget.colorProfile.buttonColor,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         ),
                         child: Text(
                           'Hear Question',
-                          style: TextStyle(color: currentProfile.textColor),
+                          style: TextStyle(color: widget.colorProfile.textColor),
                         ),
                       ),
                     ),
@@ -352,24 +355,34 @@ class GameFormState extends GamePageState<GameForm> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TranslateButtonAndText(
                         sourceText: widget.questionLabel,
-                        colorProfile: currentProfile,
+                        colorProfile: widget.colorProfile,
                         speakOnTranslate: true,
                         targetLanguage: 'es',
                         autoTranslate: assistLevel == LanguageAssistLevel.novice,
                       ),
                     ),
 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  buildTextCard(
+                    profile: widget.colorProfile,
+                    maxWidth: 820,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                     child: Column(
-                      // attempt to render the selected answers as they are moved into the list
                       children: [
+                        Text(
+                          'Your answer',
+                          style: TextStyle(
+                            color: widget.colorProfile.textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: renderConditionalLabels(),
                         ),
                       ],
-                    )
+                    ),
                   ),
                   
                   Padding(
@@ -395,16 +408,16 @@ class GameFormState extends GamePageState<GameForm> {
                                 if (validIndex < 0) {
                                   showGameOverlay(validIndex)
                                 } else {
-                                  showCorrectDialog(validIndex == -1, currentProfile, validIndex)
+                                  showCorrectDialog(validIndex == -1, widget.colorProfile, validIndex)
                                 }
                               }, 
                               style: ButtonStyle(
-                                backgroundColor: WidgetStatePropertyAll(currentProfile.checkAnswerButtonColor),
+                                backgroundColor: WidgetStatePropertyAll(widget.colorProfile.checkAnswerButtonColor),
                               ),
                               child: Text(
                                 'Check Answer',
                                   style: TextStyle(
-                                    color: currentProfile.textColor
+                                    color: widget.colorProfile.textColor
                                   ),
                               ),
                             ),
@@ -413,12 +426,12 @@ class GameFormState extends GamePageState<GameForm> {
                                 clearAnswers()
                               },
                               style: ButtonStyle(
-                                backgroundColor: WidgetStatePropertyAll(currentProfile.clearAnswerButtonColor),
+                                backgroundColor: WidgetStatePropertyAll(widget.colorProfile.clearAnswerButtonColor),
                               ),
                               child: Text(
                                 'Clear all answers',
                                 style: TextStyle(
-                                  color: currentProfile.textColor),
+                                  color: widget.colorProfile.textColor),
                               )
                             ),
                           ],

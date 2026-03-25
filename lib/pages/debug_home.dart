@@ -203,7 +203,7 @@ class DebugHomePageState extends State<DebugHomePage> {
           'assets/images/audio-playback-preview.png'
         ),
         gameRoute: "/easy-mode", 
-        gameWidget: PlaybackActivityScreen(colorProfile: currentProfile),
+        gameWidget: PlaybackActivityScreen(),
         keyId: 0,
         title: "Playback and Choose",
         subtitle: "Difficulty: Hard",
@@ -215,7 +215,7 @@ class DebugHomePageState extends State<DebugHomePage> {
           'assets/images/fill-in-the-blank-preview.png'
         ),
         gameRoute: '/intermediate-mode',
-        gameWidget: FillInActivityScreen(colorProfile: currentProfile), 
+        gameWidget: FillInActivityScreen(), 
         keyId: 1,
         title: "Fill in the Blank",
         subtitle: "Difficulty: Easy",
@@ -225,7 +225,7 @@ class DebugHomePageState extends State<DebugHomePage> {
       GameCard(
         imageAsset: const AssetImage('assets/images/jumble-preview.png'),
         gameRoute: '/jumble',
-         gameWidget: JumbleActivityScreen(colorProfile: currentProfile),
+          gameWidget: JumbleActivityScreen(),
         keyId: 2,
         title: "Translate Jumble",
         subtitle: "Difficulty: Medium",
@@ -237,7 +237,7 @@ class DebugHomePageState extends State<DebugHomePage> {
           'assets/images/reading-preview.png'
         ),
         gameRoute: '/reading', 
-        gameWidget: ReadingActivityScreen(colorProfile: currentProfile),
+        gameWidget: ReadingActivityScreen(),
         keyId: 3,
         title: "Read Aloud",
         subtitle: "Difficulty: Challenging",
@@ -249,7 +249,7 @@ class DebugHomePageState extends State<DebugHomePage> {
           'assets/images/type-preview.png'
         ),
         gameRoute: '/typing', 
-        gameWidget: TypeActivityScreen(colorProfile: currentProfile),
+        gameWidget: TypeActivityScreen(),
         keyId: 4,
         title: "Type it Out",
         subtitle: "Difficulty: Challenging",

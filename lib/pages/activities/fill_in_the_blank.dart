@@ -14,67 +14,72 @@ import 'package:onwards/pages/translation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onwards/pages/components/lang_assist.dart';
 import 'package:onwards/pages/components/hover_translated_text.dart';
+import 'package:onwards/pages/components/theme_controller.dart';
 
 
 const FillBlanksGameData dummyData = FillBlanksGameData(displayedProblem: "", multiAcceptedAnswers: [], writtenPrompt: "", blankForm: "", optionList: [], skills: []);
 
 class FillInActivityScreen extends StatelessWidget {
   final FillBlanksGameData fillBlanksGameData;
-  final ColorProfile colorProfile;
   final bool fromLevelSelect;
   final LanguageAssistLevel? langAssist;
 
   const FillInActivityScreen({
     super.key,
-    this.colorProfile = greenFlavor,
     this.fillBlanksGameData = dummyData,
     this.fromLevelSelect = false,
     this.langAssist,
   });
 
-  const FillInActivityScreen.fromLevelSelect({required FillBlanksGameData fillData, required ColorProfile profile, super.key, this.langAssist}) : 
-    colorProfile = profile,
+  const FillInActivityScreen.fromLevelSelect({required FillBlanksGameData fillData, super.key, this.langAssist}) : 
     fillBlanksGameData = fillData,
     fromLevelSelect = true;
 
   @override
   Widget build(BuildContext context) {
     FillBlanksGameData randomGameData = gameDataBank.getRandomFillBlanksElement();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Fill in the Blank Game', style: TextStyle(color: colorProfile.textColor)),
-        backgroundColor: colorProfile.headerColor,
-        actions: const [ScoreDisplayAction(), CalcButton()],
-        automaticallyImplyLeading: false,
-      ),
-      body: Container(
-        decoration: colorProfile.backBoxDecoration,
-        padding: const EdgeInsets.only(top: 40),
-        child:  !fromLevelSelect ?
-          GameForm(
-            answers: randomGameData.multiAcceptedAnswers, 
-            questionLabel: randomGameData.displayedProblem,  
-            blankQuestLabel: randomGameData.blankForm,
-            maxSelectedAnswers: randomGameData.getMinSelection(),
-            buttonOptions: randomGameData.optionList,
-            colorProfile: colorProfile,
-            skills: randomGameData.skills,
-            id: randomGameData.id,
-            langAssist: langAssist,
-          ) :
-          GameForm(
-            answers: fillBlanksGameData.multiAcceptedAnswers, 
-            questionLabel: fillBlanksGameData.displayedProblem,  
-            blankQuestLabel: fillBlanksGameData.blankForm,
-            maxSelectedAnswers: fillBlanksGameData.getMinSelection(),
-            buttonOptions: fillBlanksGameData.optionList,
-            colorProfile: colorProfile,
-            skills: fillBlanksGameData.skills,
-            id: fillBlanksGameData.id,
-            langAssist: langAssist,
-          )
-      )
+    return ValueListenableBuilder<ColorProfile>(
+      valueListenable: ThemeController.current,
+      builder: (context, colorProfile, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'Fill in the Blank Game',
+              style: TextStyle(color: colorProfile.textColor),
+            ),
+            backgroundColor: colorProfile.headerColor,
+            actions: const [ScoreDisplayAction(), CalcButton()],
+            automaticallyImplyLeading: false,
+          ),
+          body: Container(
+            decoration: colorProfile.backBoxDecoration,
+            padding: const EdgeInsets.only(top: 40),
+            child: !fromLevelSelect
+                ? GameForm(
+                    answers: randomGameData.multiAcceptedAnswers,
+                    questionLabel: randomGameData.displayedProblem,
+                    blankQuestLabel: randomGameData.blankForm,
+                    maxSelectedAnswers: randomGameData.getMinSelection(),
+                    buttonOptions: randomGameData.optionList,
+                    colorProfile: colorProfile,
+                    skills: randomGameData.skills,
+                    id: randomGameData.id,
+                    langAssist: langAssist,
+                  )
+                : GameForm(
+                    answers: fillBlanksGameData.multiAcceptedAnswers,
+                    questionLabel: fillBlanksGameData.displayedProblem,
+                    blankQuestLabel: fillBlanksGameData.blankForm,
+                    maxSelectedAnswers: fillBlanksGameData.getMinSelection(),
+                    buttonOptions: fillBlanksGameData.optionList,
+                    colorProfile: colorProfile,
+                    skills: fillBlanksGameData.skills,
+                    id: fillBlanksGameData.id,
+                    langAssist: langAssist,
+                  ),
+          ),
+        );
+      },
     );
   }
 }
@@ -86,12 +91,12 @@ class FillInActivityScreen extends StatelessWidget {
 class GameForm extends GamePage {
   const GameForm({
     super.key,
+    super.colorProfile,
     required this.answers, 
     required this.questionLabel,
     required this.blankQuestLabel,
     required this.maxSelectedAnswers,
     required this.buttonOptions,
-    super.colorProfile,
     required this.skills,
     required this.id,
     required this.langAssist,
@@ -111,7 +116,6 @@ class GameForm extends GamePage {
 }
 
 class GameFormState extends GamePageState<GameForm> {
-
   final List<String> _selectedAnswers = [];
   int maxSelection = 0;
   int currentCount = 0;
@@ -178,7 +182,7 @@ class GameFormState extends GamePageState<GameForm> {
                 _selectedAnswers[countForSelected],
                 style: TextStyle(
                   fontSize: 18.0,
-                  color: currentProfile.textColor
+                  color: widget.colorProfile.textColor
                 ),
               )
             )
@@ -192,7 +196,7 @@ class GameFormState extends GamePageState<GameForm> {
                 part,
                 style: TextStyle(
                   fontSize: 18.0,
-                  color: currentProfile.textColor
+                  color: widget.colorProfile.textColor
                 ),
               ),
             )
@@ -206,7 +210,7 @@ class GameFormState extends GamePageState<GameForm> {
               part,
               style: TextStyle(
                 fontSize: 18.0,
-                color: currentProfile.textColor
+                color: widget.colorProfile.textColor
               ),
             ),
           )
@@ -218,7 +222,7 @@ class GameFormState extends GamePageState<GameForm> {
             " ",
             style: TextStyle(
               fontSize: 18.0,
-              color: currentProfile.textColor
+              color: widget.colorProfile.textColor
             ),
           ),
         )
@@ -246,7 +250,7 @@ class GameFormState extends GamePageState<GameForm> {
           })
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: currentProfile.buttonColor,
+          backgroundColor: widget.colorProfile.buttonColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12)
           ),
@@ -257,7 +261,7 @@ class GameFormState extends GamePageState<GameForm> {
         ),
         child: Text(
           option, 
-          style: TextStyle(color: currentProfile.textColor),
+          style: TextStyle(color: widget.colorProfile.textColor),
         ),
       );
       Padding padding = Padding(
@@ -269,7 +273,7 @@ class GameFormState extends GamePageState<GameForm> {
     
     // Render the form here
     return Container(
-      decoration: currentProfile.backBoxDecoration,
+      color: Colors.transparent,
       child: Stack(
         children: [
           addConfettiBlasters(),
@@ -277,19 +281,22 @@ class GameFormState extends GamePageState<GameForm> {
             child: Column(
               children: [
                 SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-                Text(
-                  "Use the blocks below to form the written form of the expression:",
-                  style: TextStyle(
-                    color: currentProfile.textColor, 
-                    fontSize: 30,
+                buildTextCard(
+                  profile: widget.colorProfile,
+                  child: Text(
+                    "Use the blocks below to form the written form of the expression:",
+                    style: TextStyle(
+                      color: widget.colorProfile.textColor,
+                      fontSize: 30,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8),
+                buildTextCard(
+                  profile: widget.colorProfile,
                   child: HoverTranslatedText(
                     text: widget.questionLabel,
-                    colorProfile: currentProfile,
+                    colorProfile: widget.colorProfile,
                     assistLevel: assistLevel,
                   ),
                 ),
@@ -299,14 +306,14 @@ class GameFormState extends GamePageState<GameForm> {
                         child: ElevatedButton(
                           onPressed: _speakQuestion,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: currentProfile.buttonColor,
+                            backgroundColor: widget.colorProfile.buttonColor,
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 24, vertical: 12),
                           ),
                           child: Text(
                             'Hear Question',
                             style:
-                                TextStyle(color: currentProfile.textColor),
+                                TextStyle(color: widget.colorProfile.textColor),
                           ),
                         ),
                       ),
@@ -317,21 +324,32 @@ class GameFormState extends GamePageState<GameForm> {
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: TranslateButtonAndText(
                           sourceText: widget.questionLabel,
-                          colorProfile: currentProfile,
+                          colorProfile: widget.colorProfile,
                           speakOnTranslate: true,
                           targetLanguage: 'es',
                         ),
                       ),
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column( // attempt to render the selected answers as they are moved into the list
+                buildTextCard(
+                  profile: widget.colorProfile,
+                  maxWidth: 820,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  child: Column(
                     children: [
+                      Text(
+                        'Your answer',
+                        style: TextStyle(
+                          color: widget.colorProfile.textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: renderConditionalLabels(splitter),
                       ),
                     ],
-                  )
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -356,15 +374,15 @@ class GameFormState extends GamePageState<GameForm> {
                                     if (isValid) {
                                       showGameOverlay(-1)
                                     } else {
-                                      showCorrectDialog(isValid, currentProfile, -1)
+                                      showCorrectDialog(isValid, widget.colorProfile, -1)
                                     }
                                   }, 
                                   style: ButtonStyle(
-                                    backgroundColor: WidgetStatePropertyAll(currentProfile.checkAnswerButtonColor),
+                                    backgroundColor: WidgetStatePropertyAll(widget.colorProfile.checkAnswerButtonColor),
                                   ),
                                   child: Text(
                                     'Check Answer',
-                                    style: TextStyle(color: currentProfile.textColor),
+                                    style: TextStyle(color: widget.colorProfile.textColor),
                                   )
                                 )
                               ),
@@ -376,11 +394,11 @@ class GameFormState extends GamePageState<GameForm> {
                                   });
                                 },
                                 style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(currentProfile.clearAnswerButtonColor),
+                                  backgroundColor: WidgetStatePropertyAll(widget.colorProfile.clearAnswerButtonColor),
                                 ),
                                 child: Text(
                                   'Clear all answers',
-                                  style: TextStyle(color: currentProfile.textColor),
+                                  style: TextStyle(color: widget.colorProfile.textColor),
                                   )
                                 )
                             ],

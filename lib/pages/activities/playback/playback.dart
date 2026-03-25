@@ -13,25 +13,23 @@ import 'package:onwards/pages/home.dart';
 import 'package:onwards/pages/score_display.dart';
 import 'package:onwards/pages/tts.dart';
 import 'package:onwards/pages/translation.dart';
+import 'package:onwards/pages/components/theme_controller.dart';
 
 const PlaybackGameData dummyData = PlaybackGameData(webAudioLink: "", multiAcceptedAnswers: [], writtenPrompt: "", optionList: [], skills: []);
 
 class PlaybackActivityScreen extends StatelessWidget {
-  final ColorProfile colorProfile;
   final PlaybackGameData playbackGameData;
   final bool fromLevelSelect;
   final LanguageAssistLevel? langAssist;
 
   const PlaybackActivityScreen({
     super.key,
-    this.colorProfile = greenFlavor,
     this.playbackGameData = dummyData,
     this.fromLevelSelect = false,
     this.langAssist,
   });
 
-  const PlaybackActivityScreen.fromLevelSelect({super.key, required PlaybackGameData gameData, required ColorProfile profile, this.langAssist}) :
-    colorProfile = profile,
+  const PlaybackActivityScreen.fromLevelSelect({super.key, required PlaybackGameData gameData, this.langAssist}) :
     playbackGameData = gameData,
     fromLevelSelect = true;
 
@@ -39,43 +37,48 @@ class PlaybackActivityScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     PlaybackGameData randomData = gameDataBank.getRandomPlaybackElement();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Playback and Answer Game', style: TextStyle(color: colorProfile.textColor)),
-        backgroundColor: colorProfile.headerColor,
-        actions: const [ScoreDisplayAction(), CalcButton()],
-        automaticallyImplyLeading: false,
-      ),
-      body: Container(
-        decoration: colorProfile.backBoxDecoration,
-        child: !fromLevelSelect ?
-          PlaybackGameForm(
-            audioSource: AssetSource(randomData.webAudioLink),
-            answers: randomData.multiAcceptedAnswers, 
-            questionLabel: randomData.audioTranscript, 
-            maxSelectedAnswers: randomData.getMinSelection(), 
-            buttonOptions: randomData.optionList,
-            titleQuestion: randomData.writtenPrompt,
-            showArithmitic: true,
-            colorProfile: colorProfile,
-            skills: randomData.skills,
-            id: randomData.id,
-            langAssist: langAssist,
-          ) :
-          PlaybackGameForm(
-            audioSource: AssetSource(playbackGameData.webAudioLink),
-            answers: playbackGameData.multiAcceptedAnswers, 
-            questionLabel: playbackGameData.audioTranscript, 
-            maxSelectedAnswers: playbackGameData.getMinSelection(), 
-            buttonOptions: playbackGameData.optionList,
-            titleQuestion: playbackGameData.writtenPrompt,
-            showArithmitic: true,
-            colorProfile: colorProfile,
-            skills: playbackGameData.skills,
-            id: playbackGameData.id,
-            langAssist: langAssist,
+    return ValueListenableBuilder<ColorProfile>(
+      valueListenable: ThemeController.current,
+      builder: (context, colorProfile, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Playback and Answer Game', style: TextStyle(color: colorProfile.textColor)),
+            backgroundColor: colorProfile.headerColor,
+            actions: const [ScoreDisplayAction(), CalcButton()],
+            automaticallyImplyLeading: false,
           ),
-      )
+          body: Container(
+            decoration: colorProfile.backBoxDecoration,
+            child: !fromLevelSelect ?
+              PlaybackGameForm(
+                audioSource: AssetSource(randomData.webAudioLink),
+                answers: randomData.multiAcceptedAnswers, 
+                questionLabel: randomData.audioTranscript, 
+                maxSelectedAnswers: randomData.getMinSelection(), 
+                buttonOptions: randomData.optionList,
+                titleQuestion: randomData.writtenPrompt,
+                showArithmitic: true,
+                colorProfile: colorProfile,
+                skills: randomData.skills,
+                id: randomData.id,
+                langAssist: langAssist,
+              ) :
+              PlaybackGameForm(
+                audioSource: AssetSource(playbackGameData.webAudioLink),
+                answers: playbackGameData.multiAcceptedAnswers, 
+                questionLabel: playbackGameData.audioTranscript, 
+                maxSelectedAnswers: playbackGameData.getMinSelection(), 
+                buttonOptions: playbackGameData.optionList,
+                titleQuestion: playbackGameData.writtenPrompt,
+                showArithmitic: true,
+                colorProfile: colorProfile,
+                skills: playbackGameData.skills,
+                id: playbackGameData.id,
+                langAssist: langAssist,
+              ),
+          )
+        );
+      },
     );
   }
 }
@@ -205,7 +208,7 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
           part,
           style: TextStyle(
             fontSize: 18.0,
-            color: currentProfile.textColor
+            color: widget.colorProfile.textColor
           ),
         )
       ));
@@ -236,7 +239,7 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
           }, 
           isDisabled: _selectedAnswers.contains(option), 
           label: option,
-          colorProfile: currentProfile,
+          colorProfile: widget.colorProfile,
         ),
       );
       
@@ -245,7 +248,7 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
     
     // Render the form here
     return Container(
-      decoration: currentProfile.backBoxDecoration,
+      color: Colors.transparent,
       child: Stack(
         children: [
           addConfettiBlasters(),
@@ -253,15 +256,21 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
             child: Column(
                   children: [
                     SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-                  Text(
-                    widget.titleQuestion,
-                    style: TextStyle(
-                        color: currentProfile.textColor, 
+                  buildTextCard(
+                    profile: widget.colorProfile,
+                    child: Text(
+                      widget.titleQuestion,
+                      style: TextStyle(
+                        color: widget.colorProfile.textColor,
                         fontSize: 30,
                       ),
                       textAlign: TextAlign.center,
+                    ),
                   ),
-                  TTSRunner(voiceLine: widget.questionLabel),
+                  buildTextCard(
+                    profile: widget.colorProfile,
+                    child: TTSRunner(voiceLine: widget.questionLabel),
+                  ),
                   // HEAR QUESTION button:
                   // Show for Novice
                   if (assistLevel == LanguageAssistLevel.novice )
@@ -270,12 +279,12 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                       child: ElevatedButton(
                         onPressed: _speakQuestion,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: currentProfile.buttonColor,
+                          backgroundColor: widget.colorProfile.buttonColor,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         ),
                         child: Text(
                           'Hear Question',
-                          style: TextStyle(color: currentProfile.textColor),
+                          style: TextStyle(color: widget.colorProfile.textColor),
                         ),
                       ),
                     ),
@@ -287,22 +296,32 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TranslateButtonAndText(
                         sourceText: widget.questionLabel,
-                        colorProfile: currentProfile,
+                        colorProfile: widget.colorProfile,
                         speakOnTranslate: true,
                         targetLanguage: 'es',
                       ),
                     ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Column( 
-                      // attempt to render the selected answers as they are moved into the list
+                  buildTextCard(
+                    profile: widget.colorProfile,
+                    maxWidth: 820,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                    child: Column(
                       children: [
+                        Text(
+                          'Your answer',
+                          style: TextStyle(
+                            color: widget.colorProfile.textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: renderConditionalLabels(),
                         ),
                       ],
-                    )
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16),
@@ -329,17 +348,17 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                                       if (validIndex < 0) {
                                         showGameOverlay(validIndex);
                                       } else {
-                                        showCorrectDialog(validIndex < 0, currentProfile, validIndex);
+                                        showCorrectDialog(validIndex < 0, widget.colorProfile, validIndex);
                                       }
                                     },
                               style: ButtonStyle(
                                 backgroundColor: WidgetStatePropertyAll(
-                                  currentProfile.checkAnswerButtonColor,
+                                  widget.colorProfile.checkAnswerButtonColor,
                                 ),
                               ),
                               child: Text(
                                 'Check Answer',
-                                style: TextStyle(color: currentProfile.textColor),
+                                style: TextStyle(color: widget.colorProfile.textColor),
                               ),
                             ),
 
@@ -349,12 +368,12 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                               onPressed: clearAnswers,
                               style: ButtonStyle(
                                 backgroundColor: WidgetStatePropertyAll(
-                                  currentProfile.clearAnswerButtonColor,
+                                  widget.colorProfile.clearAnswerButtonColor,
                                 ),
                               ),
                               child: Text(
                                 'Clear all answers',
-                                style: TextStyle(color: currentProfile.textColor),
+                                style: TextStyle(color: widget.colorProfile.textColor),
                               ),
                             ),
                           ],

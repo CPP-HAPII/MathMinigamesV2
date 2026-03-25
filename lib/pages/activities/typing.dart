@@ -11,13 +11,13 @@ import 'package:onwards/pages/score_display.dart';
 import 'package:onwards/pages/translation.dart';
 import 'package:onwards/pages/components/lang_assist.dart';
 import 'package:onwards/pages/components/hover_translated_text.dart';
+import 'package:onwards/pages/components/theme_controller.dart';
 
 
 const TypingGameData dummyData = TypingGameData(
     displayedProblem: "", multiAcceptedAnswers: ["", ""], skills: []);
 
 class TypeActivityScreen extends StatelessWidget {
-  final ColorProfile colorProfile;
   final TypingGameData typingGameData;
   final bool fromLevelSelect;
   final LanguageAssistLevel? langAssist;
@@ -25,57 +25,59 @@ class TypeActivityScreen extends StatelessWidget {
   /// The default constructor that doesn't ask for the gameData.
   const TypeActivityScreen(
       {super.key,
-      this.colorProfile = greenFlavor,
       this.typingGameData = dummyData,
       this.fromLevelSelect = false,
       this.langAssist,});
 
   /// Using this constructor allows a gameData to be passed instead of randomly picked from the bank
   const TypeActivityScreen.fromLevelSelect(
-      {required ColorProfile profile,
-      required TypingGameData typingData,
+      {required TypingGameData typingData,
       super.key,
       this.langAssist})
-      : colorProfile = profile,
-        typingGameData = typingData,
+      : typingGameData = typingData,
         fromLevelSelect = true;
 
   @override
   Widget build(BuildContext context) {
     TypingGameData randomGameData = gameDataBank.getRandomTypingElement();
 
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('Type it Out Game',
-              style: TextStyle(color: colorProfile.textColor)),
-          backgroundColor: colorProfile.headerColor,
-          actions: const [ScoreDisplayAction(), CalcButton()],
-          automaticallyImplyLeading: false,
-        ),
-        body: Container(
-            decoration: colorProfile.backBoxDecoration,
-            padding: const EdgeInsets.only(top: 40),
-            child: !fromLevelSelect
-                ? GameForm(
-                    // Using the bank's random game data
-                    answers: randomGameData.multiAcceptedAnswers,
-                    questionLabel: randomGameData.displayedProblem,
-                    instructions: randomGameData.writtenPrompt,
-                    colorProfile: colorProfile,
-                    skills: randomGameData.skills,
-                    id: randomGameData.id,
-                    langAssist: langAssist,
-                  )
-                : GameForm(
-                    // Using the passed gameData
-                    answers: typingGameData.multiAcceptedAnswers,
-                    questionLabel: typingGameData.displayedProblem,
-                    instructions: typingGameData.writtenPrompt,
-                    colorProfile: colorProfile,
-                    skills: typingGameData.skills,
-                    id: typingGameData.id,
-                    langAssist: langAssist,
-                  )));
+    return ValueListenableBuilder<ColorProfile>(
+      valueListenable: ThemeController.current,
+      builder: (context, colorProfile, _) {
+        return Scaffold(
+            appBar: AppBar(
+              title: Text('Type it Out Game',
+                  style: TextStyle(color: colorProfile.textColor)),
+              backgroundColor: colorProfile.headerColor,
+              actions: const [ScoreDisplayAction(), CalcButton()],
+              automaticallyImplyLeading: false,
+            ),
+            body: Container(
+                decoration: colorProfile.backBoxDecoration,
+                padding: const EdgeInsets.only(top: 40),
+                child: !fromLevelSelect
+                    ? GameForm(
+                        // Using the bank's random game data
+                        answers: randomGameData.multiAcceptedAnswers,
+                        questionLabel: randomGameData.displayedProblem,
+                        instructions: randomGameData.writtenPrompt,
+                        colorProfile: colorProfile,
+                        skills: randomGameData.skills,
+                        id: randomGameData.id,
+                        langAssist: langAssist,
+                      )
+                    : GameForm(
+                        // Using the passed gameData
+                        answers: typingGameData.multiAcceptedAnswers,
+                        questionLabel: typingGameData.displayedProblem,
+                        instructions: typingGameData.writtenPrompt,
+                        colorProfile: colorProfile,
+                        skills: typingGameData.skills,
+                        id: typingGameData.id,
+                        langAssist: langAssist,
+                      )));
+      },
+    );
   }
 }
 
@@ -171,7 +173,7 @@ class _GameFormState extends GamePageState<GameForm> {
     bool valid;
 
     return Container(
-      decoration: currentProfile.backBoxDecoration,
+      color: Colors.transparent,
       child: Stack(
         children: [
           addConfettiBlasters(),
@@ -183,16 +185,19 @@ class _GameFormState extends GamePageState<GameForm> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-                    Text(
-                      widget.instructions,
-                      style: TextStyle(
-                        color: currentProfile.textColor,
-                        fontSize: 30,
+                    buildTextCard(
+                      profile: currentProfile,
+                      child: Text(
+                        widget.instructions,
+                        style: TextStyle(
+                          color: currentProfile.textColor,
+                          fontSize: 30,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
+                    buildTextCard(
+                      profile: currentProfile,
                       child: HoverTranslatedText(
                         text: widget.questionLabel,
                         colorProfile: currentProfile,
@@ -232,13 +237,11 @@ class _GameFormState extends GamePageState<GameForm> {
                       ),
                     ),
 
-                    Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: 500,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: TextFormField(
+                    buildTextCard(
+                      profile: currentProfile,
+                      maxWidth: 560,
+                      padding: const EdgeInsets.all(16),
+                      child: TextFormField(
                             maxLines: 3,
                             controller: _answerFieldController,
                             decoration: InputDecoration(
@@ -263,8 +266,6 @@ class _GameFormState extends GamePageState<GameForm> {
                               showGameOverlay(-1);
                             },
                           ),
-                        ),
-                      ),
                     ),
 
                     SizedBox(
