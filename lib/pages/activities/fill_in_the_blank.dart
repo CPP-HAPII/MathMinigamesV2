@@ -300,35 +300,39 @@ class GameFormState extends GamePageState<GameForm> {
                     assistLevel: assistLevel,
                   ),
                 ),
-                if (assistLevel == LanguageAssistLevel.novice)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: ElevatedButton(
-                          onPressed: _speakQuestion,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: widget.colorProfile.buttonColor,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
-                          ),
-                          child: Text(
-                            'Hear Question',
-                            style:
-                                TextStyle(color: widget.colorProfile.textColor),
-                          ),
-                        ),
-                      ),
-
-                    if (assistLevel == LanguageAssistLevel.novice ||
+                if (assistLevel == LanguageAssistLevel.novice ||
                     assistLevel == LanguageAssistLevel.intermediate)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: TranslateButtonAndText(
+                  buildTextCard(
+                    profile: widget.colorProfile,
+                    maxWidth: 560,
+                    child: Column(
+                      children: [
+                        if (assistLevel == LanguageAssistLevel.novice)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: ElevatedButton(
+                              onPressed: _speakQuestion,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: widget.colorProfile.buttonColor,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 12),
+                              ),
+                              child: Text(
+                                'Hear Question',
+                                style: TextStyle(color: widget.colorProfile.textColor),
+                              ),
+                            ),
+                          ),
+                        TranslateButtonAndText(
                           sourceText: widget.questionLabel,
                           colorProfile: widget.colorProfile,
                           speakOnTranslate: true,
                           targetLanguage: 'es',
+                          autoTranslate: assistLevel == LanguageAssistLevel.novice,
                         ),
-                      ),
+                      ],
+                    ),
+                  ),
                 buildTextCard(
                   profile: widget.colorProfile,
                   maxWidth: 820,

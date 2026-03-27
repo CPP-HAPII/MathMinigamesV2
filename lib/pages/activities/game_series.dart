@@ -247,7 +247,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
     if (widget.sequenceData != null && widget.sequenceData!.random) {
       questions.shuffle(Random());
       if (questions.length > widget.maxQuestCount) {
-        questions.length = widget.maxQuestCount;
+        questions.length = widget.maxQuestCount - 1;
       }
     }
 
@@ -300,7 +300,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
     randomPageOrderList.clear();
     final random = Random();
     int randStart = random.nextInt(pageBuilders.length);
-    for (int i = 0; i < widget.maxQuestCount; i++) {
+    for (int i = 0; i < widget.maxQuestCount-1; i++) {
       randomPageOrderList.add((randStart + i) % pageBuilders.length);
     }
 

@@ -205,37 +205,39 @@ class _GameFormState extends GamePageState<GameForm> {
                       ),
                     ),
 
-                    if (assistLevel == LanguageAssistLevel.novice)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: ElevatedButton(
-                          onPressed: _speakQuestion,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: currentProfile.buttonColor,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
-                          ),
-                          child: Text(
-                            'Hear Question',
-                            style:
-                                TextStyle(color: currentProfile.textColor),
-                          ),
+                    if (assistLevel == LanguageAssistLevel.novice ||
+                        assistLevel == LanguageAssistLevel.intermediate)
+                      buildTextCard(
+                        profile: currentProfile,
+                        maxWidth: 560,
+                        child: Column(
+                          children: [
+                            if (assistLevel == LanguageAssistLevel.novice)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: ElevatedButton(
+                                  onPressed: _speakQuestion,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: currentProfile.buttonColor,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 24, vertical: 12),
+                                  ),
+                                  child: Text(
+                                    'Hear Question',
+                                    style: TextStyle(color: currentProfile.textColor),
+                                  ),
+                                ),
+                              ),
+                            TranslateButtonAndText(
+                              sourceText: widget.questionLabel,
+                              colorProfile: currentProfile,
+                              speakOnTranslate: true,
+                              targetLanguage: 'es',
+                              autoTranslate: assistLevel == LanguageAssistLevel.novice,
+                            ),
+                          ],
                         ),
                       ),
-
-                    // TRANSLATE BUTTON:
-                  if (assistLevel == LanguageAssistLevel.novice ||
-                    assistLevel == LanguageAssistLevel.intermediate)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: TranslateButtonAndText(
-                        sourceText: widget.questionLabel,
-                        colorProfile: currentProfile,
-                        speakOnTranslate: true,
-                        targetLanguage: 'es',
-                        autoTranslate: assistLevel == LanguageAssistLevel.novice,
-                      ),
-                    ),
 
                     buildTextCard(
                       profile: currentProfile,
