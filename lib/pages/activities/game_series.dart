@@ -234,29 +234,34 @@ class SeriesHomePageState extends State<SeriesHomePage> {
   }
 
   void selectFixedPages() {
-    if (!widget.difficultyType.equals(DifficultyType.random)) {
-    // TODO: If sequence issue add logging here for which sequence is being used
-    final Iterable<GameData> questionsIter = widget.sequenceData != null
-      ? gameDataBank.getFilteredQuestions(widget.sequenceData!)
-      : gameDataBank.getSeriesByDifficulty(widget.difficultyType);
+    fixedPageOrderList.clear();
 
-    // If a SequenceData is present and its `random` flag is
-    // true, shuffle the selected questions and then take up to widget.maxQuestCount entries.
+    if (!widget.difficultyType.equals(DifficultyType.random)) {
+    final Iterable<GameData> questionsIter =
+      gameDataBank.getQuestionsByDifficulty(widget.difficultyType);
+
+    /*
+    // Future profile-settings flow:
+    // final Iterable<GameData> questionsIter = widget.sequenceData != null
+    //   ? gameDataBank.getFilteredQuestions(widget.sequenceData!)
+    //   : gameDataBank.getQuestionsByDifficulty(widget.difficultyType);
+    */
+
     final List<GameData> questions = questionsIter.toList();
 
-    if (widget.sequenceData != null && widget.sequenceData!.random) {
-      questions.shuffle(Random());
-      if (questions.length > widget.maxQuestCount) {
-        questions.length = widget.maxQuestCount - 1;
-      }
-    }
-
-    logger.i("Sequence selected ${widget.sequenceData != null ? "with" : "without"} filtering. "
-        "Number of questions selected: ${questions.length}. Sequence Name: ${widget.sequenceData?.name ?? "N/A"}");
+    logger.i(
+      "Difficulty selected: ${widget.difficultyType.identifier}. "
+      "Number of questions selected from Firestore: ${questions.length}",
+    );
 
     logger.i("Language assist level for this series: ${widget.langAssist != null ? widget.langAssist.toString() : "None"}");
     
     for (GameData gameData in questions) {
+          if (!_isUsableQuestion(gameData)) {
+            logger.w("Skipping unusable question in sequence: ${gameData.id}");
+            continue;
+          }
+
           if (gameData is PlaybackGameData) {
             PlaybackGameData playbackGameData = gameData;
             PlaybackActivityScreen playbackGame = PlaybackActivityScreen.fromLevelSelect(gameData: playbackGameData, langAssist: widget.langAssist, );
@@ -290,6 +295,35 @@ class SeriesHomePageState extends State<SeriesHomePage> {
     }
   }
 
+  bool _isUsableQuestion(GameData gameData) {
+    if (gameData is PlaybackGameData) {
+      return gameData.multiAcceptedAnswers.isNotEmpty &&
+          gameData.multiAcceptedAnswers.first.isNotEmpty &&
+          gameData.optionList.isNotEmpty;
+    }
+
+    if (gameData is JumbleGameData) {
+      return gameData.multiAcceptedAnswers.isNotEmpty &&
+          gameData.multiAcceptedAnswers.first.isNotEmpty &&
+          gameData.optionList.isNotEmpty;
+    }
+
+    if (gameData is FillBlanksGameData) {
+      return gameData.multiAcceptedAnswers.isNotEmpty &&
+          gameData.optionList.isNotEmpty;
+    }
+
+    if (gameData is ReadAloudGameData) {
+      return gameData.multiAcceptedAnswers.isNotEmpty;
+    }
+
+    if (gameData is TypingGameData) {
+      return gameData.multiAcceptedAnswers.isNotEmpty;
+    }
+
+    return true;
+  }
+
   /// Fill the selectedPageOrder list with X number of random questions, where X is the max number of questions in a series
   void selectRandPages() {
     if (pageBuilders.isEmpty) {
@@ -300,7 +334,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
     randomPageOrderList.clear();
     final random = Random();
     int randStart = random.nextInt(pageBuilders.length);
-    for (int i = 0; i < widget.maxQuestCount-1; i++) {
+    for (int i = 0; i < widget.maxQuestCount; i++) {
       randomPageOrderList.add((randStart + i) % pageBuilders.length);
     }
 
@@ -380,6 +414,11 @@ class SeriesHomePageState extends State<SeriesHomePage> {
         logger.d("This GameTest has a profile of: ${colorProfile.idKey}");
 
         String buttonLabel = "Play Game";
+        final int firestoreQuestionCount =
+            gameDataBank.getQuestionsByDifficulty(widget.difficultyType).length;
+        final int questionTotal = widget.difficultyType.equals(DifficultyType.random)
+            ? widget.maxQuestCount
+            : firestoreQuestionCount;
 
         return Scaffold(
           appBar: AppBar(
@@ -399,7 +438,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
                 Align(
                   alignment: Alignment.center,
                   child: Text(
-                    "Click to start the question series. You will navigate through ${gameDataBank.getFilteredQuestions(widget.sequenceData!).length} questions.",
+                    "Click to start the question series. You will navigate through $questionTotal questions.",
                     style: TextStyle(
                       color: colorProfile.textColor,
                       fontSize: 16,

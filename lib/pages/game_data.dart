@@ -195,7 +195,10 @@ class PlaybackGameData extends GameData {
   final List<String> optionList;
 
   int getMinSelection() {
-    return multiAcceptedAnswers[0].length;
+    if (multiAcceptedAnswers.isEmpty) {
+      return 0;
+    }
+    return multiAcceptedAnswers.first.length;
   }
 }
 
@@ -221,7 +224,10 @@ class JumbleGameData extends GameData {
   final List<String> optionList;
 
   int getMinSelection() {
-    return multiAcceptedAnswers[0].length;
+    if (multiAcceptedAnswers.isEmpty) {
+      return 0;
+    }
+    return multiAcceptedAnswers.first.length;
   }
 
     /// Factory to create JumbleGameData from Firestore
@@ -1619,5 +1625,28 @@ class GameDataBank {
 
     logger.i('Loaded ${results.length} filtered questions for sequence "${sequenceData.name}"');
     return results;
+  }
+
+  List<GameData> getQuestionsByDifficulty(DifficultyType type) {
+    if (type.equals(DifficultyType.random)) {
+      return getAllQuestions();
+    }
+
+    final List<String> difficultyLabels = switch (type) {
+      DifficultyType.easy => const ['easy'],
+      DifficultyType.intermediate => const ['intermediate', 'medium'],
+      DifficultyType.hard => const ['hard'],
+      DifficultyType.random => const ['random'],
+    };
+
+    return getFilteredQuestions(
+      SequenceData(
+        difficulty: difficultyLabels,
+        filters: const [],
+        gameType: const [],
+        name: "Difficulty: ${difficultyLabels.join('/')}",
+        random: false,
+      ),
+    );
   }
 }

@@ -154,16 +154,24 @@ class GameFormState extends GamePageState<GameForm> {
   }
 
   bool validateAnswer() {
+    if (currentCount < widget.maxSelectedAnswers) {
+      logger.d("Not enough answers are selected, could not validate");
+      return false;
+    }
+
+    if (_selectedAnswers.length != widget.answers.length) {
+      logger.d(
+        "Answer length mismatch. Selected ${_selectedAnswers.length}, expected ${widget.answers.length}",
+      );
+      return false;
+    }
+
     bool isCorrect = true;
-    if (currentCount >= widget.maxSelectedAnswers) {
-      for (int i = 0; i < _selectedAnswers.length; i++) {
-        if (_selectedAnswers[i] != widget.answers[i]) {
-          isCorrect = false;
-          logger.d("Correct answer did not match at: ${widget.answers[i]}");
-        }
+    for (int i = 0; i < _selectedAnswers.length; i++) {
+      if (_selectedAnswers[i] != widget.answers[i]) {
+        isCorrect = false;
+        logger.d("Correct answer did not match at: ${widget.answers[i]}");
       }
-    } else {
-      isCorrect = false;
     }
     logger.d("validated answer");
     return isCorrect;

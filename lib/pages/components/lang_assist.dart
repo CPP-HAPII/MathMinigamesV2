@@ -29,7 +29,8 @@ class AssistLevelService {
 
   static Future<LanguageAssistLevel> load() async {
     final prefs = await SharedPreferences.getInstance();
-    final index = prefs.getInt('lang_assist_level') ?? 0;
+    final rawIndex = prefs.getInt('lang_assist_level') ?? 0;
+    final index = rawIndex.clamp(0, LanguageAssistLevel.values.length - 1);
     return LanguageAssistLevel.values[index];
   }
 }

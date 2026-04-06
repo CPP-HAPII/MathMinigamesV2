@@ -154,30 +154,35 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
 
   /// Validate the current selection against the multiple answers
   int validateAnswer() {
-    int errorIndex = 0;
-    bool isCorrect = true;
-    if (currentCount >= maxSelection) {
-      for (List<String> answerList in widget.answers) {
-        for (int i = 0; i < answerList.length; i++) {
-          if (_selectedAnswers[i] != answerList[i]) {
-            logger.d("Validating Answer: Expected ${answerList[i]}");
-            isCorrect = false;
-            errorIndex = i;
-          }
-        }
-        
-        // when we are done going through one answer, if its correct, just skip checking the rest
-        if (isCorrect) {
-          return -1;
-        } else {
-          return errorIndex;
-        }
-      }
-    } else {
+    if (currentCount < maxSelection) {
       logger.d("Not enough answers are selected, could not validate");
       return 0;
     }
-    return 0;
+
+    int bestMismatch = 1;
+
+    for (List<String> answerList in widget.answers) {
+      if (_selectedAnswers.length != answerList.length) {
+        bestMismatch = 1;
+        continue;
+      }
+
+      bool isCorrect = true;
+      for (int i = 0; i < answerList.length; i++) {
+        if (_selectedAnswers[i] != answerList[i]) {
+          logger.d("Validating Answer: Expected ${answerList[i]}");
+          isCorrect = false;
+          bestMismatch = i;
+          break;
+        }
+      }
+
+      if (isCorrect) {
+        return -1;
+      }
+    }
+
+    return bestMismatch;
   }
 
   void clearAnswers() {

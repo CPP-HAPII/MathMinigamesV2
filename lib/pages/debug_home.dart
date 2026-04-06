@@ -208,7 +208,6 @@ class DebugHomePageState extends State<DebugHomePage> {
         title: "Playback and Choose",
         subtitle: "Difficulty: Hard",
         styleMode: darkStyle,
-        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage(
@@ -220,7 +219,6 @@ class DebugHomePageState extends State<DebugHomePage> {
         title: "Fill in the Blank",
         subtitle: "Difficulty: Easy",
         styleMode: darkStyle,
-        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage('assets/images/jumble-preview.png'),
@@ -230,7 +228,6 @@ class DebugHomePageState extends State<DebugHomePage> {
         title: "Translate Jumble",
         subtitle: "Difficulty: Medium",
         styleMode: darkStyle,
-        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage(
@@ -242,7 +239,6 @@ class DebugHomePageState extends State<DebugHomePage> {
         title: "Read Aloud",
         subtitle: "Difficulty: Challenging",
         styleMode: darkStyle,
-        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       ),
       GameCard(
         imageAsset: const AssetImage(
@@ -254,7 +250,6 @@ class DebugHomePageState extends State<DebugHomePage> {
         title: "Type it Out",
         subtitle: "Difficulty: Challenging",
         styleMode: darkStyle,
-        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
       )
     ];
 

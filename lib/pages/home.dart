@@ -12,7 +12,6 @@ import 'package:onwards/pages/score_display.dart';
 import 'package:onwards/pages/create_sequence.dart';
 import 'package:onwards/pages/create_question.dart';
 import 'package:onwards/pages/components/lang_assist.dart';
-import 'package:onwards/pages/profile_settings.dart';
 import 'package:onwards/pages/components/assist_controller.dart';
 import 'package:onwards/pages/components/theme_controller.dart';
 
@@ -112,12 +111,19 @@ class HomePageState extends State<HomePage> {
   late Future<int> sequenceId;
   late Future<int> langAssistIndex;
   final List<LanguageAssistLevel> levels = LanguageAssistLevel.values;
+  final List<DifficultyType> difficultyLevels = const [
+    DifficultyType.easy,
+    DifficultyType.intermediate,
+    DifficultyType.hard,
+  ];
   int selected = 0;
+  int selectedDifficultyIndex = 0;
 
-  SequenceData? currentSequence;
+  // Future profile-settings flow:
+  // SequenceData? currentSequence;
 
   late ColorProfile currentProfile = greenFlavor;
-  late LanguageAssistLevel currentLangAssist;
+  LanguageAssistLevel currentLangAssist = LanguageAssistLevel.novice;
 
   Future<void> loadTheme() async {
     final SharedPreferencesWithCache prefs = await _prefs;
@@ -128,6 +134,7 @@ class HomePageState extends State<HomePage> {
   });
   }
 
+  /*
   Future<void> loadSequence() async {
     final SharedPreferencesWithCache prefs = await _prefs;
     int index = prefs.getInt('sequence_id') ?? 0;
@@ -151,7 +158,8 @@ class HomePageState extends State<HomePage> {
     final SharedPreferencesWithCache prefs = await _prefs;
     int index = (prefs.getInt('sequence_id') ?? 0);
     return sequenceFiltersBank.sequenceBank[index];
-  } 
+  }
+  */
 
 
   void _loadAssistLevel() async {
@@ -231,7 +239,8 @@ class HomePageState extends State<HomePage> {
     weakTopicList = _prefs.then((SharedPreferencesWithCache prefs) {
       return prefs.getStringList('weak_topics') ?? <String>[];
     });
-    sequenceId = _loadSequenceIndex();
+    // Future profile-settings flow:
+    // sequenceId = _loadSequenceIndex();
     _loadAssistLevel();
     currentProfile = ThemeController.current.value;
 
@@ -244,6 +253,14 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedDifficulty = difficultyLevels[selectedDifficultyIndex];
+    final selectedDifficultyLabel = switch (selectedDifficulty) {
+      DifficultyType.easy => 'Easy',
+      DifficultyType.intermediate => 'Medium',
+      DifficultyType.hard => 'Hard',
+      DifficultyType.random => 'Random',
+    };
+
     List<Widget> gameCards = <Widget>[
       GameCard(
         imageAsset: const AssetImage(
@@ -251,17 +268,16 @@ class HomePageState extends State<HomePage> {
         ),
         gameRoute: '/play-mode', 
         gameWidget: SeriesHomePage(
-          difficultyType: DifficultyType.easy,
-          sequenceData: currentSequence,
+          difficultyType: selectedDifficulty,
+          sequenceData: null,
           langAssist: AssistController.current.value,
           userId: widget.userId, // Pass userId to SeriesHomePage
         ),
         keyId: 5,
         title: "Play Mode",
-        subtitle: "A series of questions based off the sequence.",
+        subtitle: "A series of $selectedDifficultyLabel questions from Firestore.",
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
-        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
         langAssist: AssistController.current.value,
       ),
       /*
@@ -276,7 +292,6 @@ class HomePageState extends State<HomePage> {
         subtitle: "Dev Only. For testing purposes.",
         styleMode: TextStyle(color: currentProfile.textColor),
         colorProfile: currentProfile,
-        sequenceData: currentSequence ?? sequenceFiltersBank.sequenceBank[0],
         langAssist: currentLangAssist,
       )
       */
@@ -319,6 +334,63 @@ class HomePageState extends State<HomePage> {
                             children: gameCards,
                           ),
                       )
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 24,
+                    runSpacing: 16,
+                    children: [
+                      _SelectionCard(
+                        title: 'Difficulty',
+                        colorProfile: currentProfile,
+                        children: List.generate(difficultyLevels.length, (index) {
+                          final difficulty = difficultyLevels[index];
+                          final optionLabel = switch (difficulty) {
+                            DifficultyType.easy => 'Easy',
+                            DifficultyType.intermediate => 'Medium',
+                            DifficultyType.hard => 'Hard',
+                            DifficultyType.random => 'Random',
+                          };
+                          final isSelected = selectedDifficultyIndex == index;
+
+                          return _SelectionButton(
+                            label: optionLabel,
+                            isSelected: isSelected,
+                            colorProfile: currentProfile,
+                            onPressed: () {
+                              setState(() {
+                                selectedDifficultyIndex = index;
+                              });
+                            },
+                          );
+                        }),
+                      ),
+                      _SelectionCard(
+                        title: 'Language Assist',
+                        colorProfile: currentProfile,
+                        children: List.generate(levels.length, (index) {
+                          final level = levels[index];
+                          final isSelected = selected == index;
+
+                          return _SelectionButton(
+                            label: level.label,
+                            isSelected: isSelected,
+                            colorProfile: currentProfile,
+                            onPressed: () async {
+                              await AssistController.set(level);
+                              setState(() {
+                                selected = index;
+                                currentLangAssist = level;
+                              });
+                            },
+                          );
+                        }),
+                      ),
                     ],
                   ),
                 ),
@@ -591,23 +663,13 @@ class DesktopCarouselState extends State<DesktopCarousel> {
                       ),
                     ),
 
-                    IconButton(
-                      icon: Icon(
+                    // Temporarily hiding profile settings access for the demo flow.
+                    SizedBox(
+                      width: 48,
+                      child: Icon(
                         Icons.settings,
-                        color: widget.colorProfile.textColor,
+                        color: widget.colorProfile.textColor.withValues(alpha: 0.35),
                       ),
-                      onPressed: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ProfileSettingsPage(
-                              colorProfile: widget.colorProfile,
-                            ),
-                          ),
-                        );
-
-                        // Reload theme after returning from settings
-                      },
                     ),
                   ],
                 ),
@@ -717,6 +779,87 @@ class _DesktopPageButton extends StatelessWidget {
   }
 }
 
+class _SelectionCard extends StatelessWidget {
+  const _SelectionCard({
+    required this.title,
+    required this.children,
+    required this.colorProfile,
+  });
+
+  final String title;
+  final List<Widget> children;
+  final ColorProfile colorProfile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 280, maxWidth: 420),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorProfile.headerColor.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: colorProfile.textColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: children,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SelectionButton extends StatelessWidget {
+  const _SelectionButton({
+    required this.label,
+    required this.isSelected,
+    required this.colorProfile,
+    required this.onPressed,
+  });
+
+  final String label;
+  final bool isSelected;
+  final ColorProfile colorProfile;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected
+            ? colorProfile.buttonColor
+            : colorProfile.backgroundColor.withValues(alpha: 0.9),
+        foregroundColor: colorProfile.textColor,
+        side: BorderSide(
+          color: colorProfile.textColor.withValues(alpha: 0.2),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+      onPressed: onPressed,
+      child: Text(
+        label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+    );
+  }
+}
+
 class SnappingScrollPhysics extends ScrollPhysics {
   const SnappingScrollPhysics({super.parent});
 
@@ -753,7 +896,6 @@ class GameCard extends StatelessWidget {
     required this.subtitle,
     required this.styleMode,
     this.colorProfile = greenFlavor,
-    required this.sequenceData,
     this.langAssist,
   });
 
@@ -765,7 +907,6 @@ class GameCard extends StatelessWidget {
   final String subtitle;
   final TextStyle? styleMode;
   final ColorProfile colorProfile;
-  final SequenceData sequenceData;
   final LanguageAssistLevel? langAssist;
   
   final desktopMargin = 8.0;
