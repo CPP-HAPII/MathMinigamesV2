@@ -310,7 +310,7 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                     ),
                   buildTextCard(
                     profile: widget.colorProfile,
-                    maxWidth: 820,
+                    maxWidth: 620,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                     child: Column(
                       children: [
@@ -339,61 +339,64 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                         children: dynamicButtonList,
                       ),
                   ),
-                  SizedBox(
-                    width: double.infinity, 
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextButton(
-                              onPressed: _selectedAnswers.isEmpty
-                                  ? null
-                                  : () {
-                                      validIndex = validateAnswer();
-                                      if (validIndex < 0) {
-                                        showGameOverlay(validIndex);
-                                      } else {
-                                        showCorrectDialog(validIndex < 0, widget.colorProfile, validIndex);
-                                      }
-                                    },
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStatePropertyAll(
-                                  widget.colorProfile.checkAnswerButtonColor,
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 64),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton(
+                                onPressed: _selectedAnswers.isEmpty
+                                    ? null
+                                    : () {
+                                        validIndex = validateAnswer();
+                                        if (validIndex < 0) {
+                                          showGameOverlay(validIndex);
+                                        } else {
+                                          showCorrectDialog(validIndex < 0, widget.colorProfile, validIndex);
+                                        }
+                                      },
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                    widget.colorProfile.checkAnswerButtonColor,
+                                  ),
+                                ),
+                                child: Text(
+                                  'Check Answer',
+                                  style: TextStyle(color: widget.colorProfile.textColor),
                                 ),
                               ),
-                              child: Text(
-                                'Check Answer',
-                                style: TextStyle(color: widget.colorProfile.textColor),
-                              ),
-                            ),
 
-                            const SizedBox(width: 12),
+                              const SizedBox(width: 12),
 
-                            TextButton(
-                              onPressed: clearAnswers,
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStatePropertyAll(
-                                  widget.colorProfile.clearAnswerButtonColor,
+                              TextButton(
+                                onPressed: clearAnswers,
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                    widget.colorProfile.clearAnswerButtonColor,
+                                  ),
+                                ),
+                                child: Text(
+                                  'Clear all answers',
+                                  style: TextStyle(color: widget.colorProfile.textColor),
                                 ),
                               ),
-                              child: Text(
-                                'Clear all answers',
-                                style: TextStyle(color: widget.colorProfile.textColor),
-                              ),
-                            ),
-                          ],
-                        ),
-                        
-                        const Positioned(
-                          right: 8,
-                          child: SizedBox(
-                            height: 32,
-                            child: Skip(),
+                            ],
                           ),
-                        ),
-                      ],
+                          
+                          const Positioned(
+                            right: 8,
+                            child: SizedBox(
+                              height: 32,
+                              child: Skip(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 ],

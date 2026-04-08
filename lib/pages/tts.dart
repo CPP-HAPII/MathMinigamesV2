@@ -209,7 +209,7 @@ class TSRunnerState extends State<TTSRunner> {
 
   Widget _btnSection() {
     return Container(
-      padding: EdgeInsets.only(top: 50.0, bottom: 50.0),
+      padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [

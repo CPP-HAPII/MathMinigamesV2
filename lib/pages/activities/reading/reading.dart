@@ -312,54 +312,57 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
                     ],
                   ),
                 ),
-                SizedBox(
-                    width: double.infinity, 
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextButton(
-                              onPressed: _isListening || _speech.isListening ? stopEngine : () => {
-                                isValid = validateAnswer(),
-                                if (isValid) {
-                                  showGameOverlay(-1)
-                                } else {
-                                  showCorrectDialog(isValid, currentProfile, -1)
-                                }
-                              },
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStatePropertyAll(currentProfile.checkAnswerButtonColor),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 64),
+                    child: SizedBox(
+                      width: double.infinity, 
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton(
+                                onPressed: _isListening || _speech.isListening ? stopEngine : () => {
+                                  isValid = validateAnswer(),
+                                  if (isValid) {
+                                    showGameOverlay(-1)
+                                  } else {
+                                    showCorrectDialog(isValid, currentProfile, -1)
+                                  }
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(currentProfile.checkAnswerButtonColor),
+                                ),
+                                child: Text(
+                                  'Check Answer',
+                                  style: TextStyle(color: currentProfile.textColor),
+                                )
                               ),
-                              child: Text(
-                                'Check Answer',
-                                style: TextStyle(color: currentProfile.textColor),
+                              TextButton(
+                                onPressed: () => {
+                                  clearText()
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(currentProfile.clearAnswerButtonColor),
+                                ),
+                                child: Text(
+                                  'Clear all answers',
+                                  style: TextStyle(color: currentProfile.textColor),
+                                )
                               )
-                            ),
-                            TextButton(
-                              onPressed: () => {
-                                clearText()
-                              },
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStatePropertyAll(currentProfile.clearAnswerButtonColor),
-                              ),
-                              child: Text(
-                                'Clear all answers',
-                                style: TextStyle(color: currentProfile.textColor),
-                              )
-                            )
-                          ],
-                        ),
-                        
-                        const Positioned(
-                          right: 8,
-                          child: SizedBox(
-                            height: 32,
-                            child: Skip(),
+                            ],
                           ),
-                        ),
-                      ],
+                          
+                          const Positioned(
+                            right: 8,
+                            child: SizedBox(
+                              height: 32,
+                              child: Skip(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   )
               ],

@@ -270,45 +270,48 @@ class _GameFormState extends GamePageState<GameForm> {
                           ),
                     ),
 
-                    SizedBox(
-                      width: double.infinity, 
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  valid = validateAnswer();
-                                  isCorrect = valid;
-                                  valid
-                                      ? showGameOverlay(-1)
-                                      : showCorrectDialog(valid, currentProfile, -1);
-                                },
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(
-                                      currentProfile.checkAnswerButtonColor),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 64),
+                      child: SizedBox(
+                        width: double.infinity, 
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextButton(
+                                  onPressed: () {
+                                    valid = validateAnswer();
+                                    isCorrect = valid;
+                                    valid
+                                        ? showGameOverlay(-1)
+                                        : showCorrectDialog(valid, currentProfile, -1);
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor: WidgetStatePropertyAll(
+                                        currentProfile.checkAnswerButtonColor),
+                                  ),
+                                  child: Text(
+                                    'Check Answer',
+                                    style: TextStyle(
+                                        color: currentProfile.textColor),
+                                  ),
                                 ),
-                                child: Text(
-                                  'Check Answer',
-                                  style: TextStyle(
-                                      color: currentProfile.textColor),
-                                ),
-                              ),
 
-                              const SizedBox(width: 12),
-                            ],
-                          ),
-                          
-                          const Positioned(
-                            right: 8,
-                            child: SizedBox(
-                              height: 32,
-                              child: Skip(),
+                                const SizedBox(width: 12),
+                              ],
                             ),
-                          ),
-                        ],
+                            
+                            const Positioned(
+                              right: 8,
+                              child: SizedBox(
+                                height: 32,
+                                child: Skip(),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     )
                   ],

@@ -370,59 +370,62 @@ class GameFormState extends GamePageState<GameForm> {
                     children: dynamicButtonList,
                   ),
                 ),
-                SizedBox(
-                      width: double.infinity, 
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: TextButton(
-                                  onPressed: () => {
-                                    isValid = validateAnswer(),
-                                    if (isValid) {
-                                      showGameOverlay(-1)
-                                    } else {
-                                      showCorrectDialog(isValid, widget.colorProfile, -1)
-                                    }
-                                  }, 
+                Padding(
+                      padding: const EdgeInsets.only(bottom: 64),
+                      child: SizedBox(
+                        width: double.infinity, 
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: TextButton(
+                                    onPressed: () => {
+                                      isValid = validateAnswer(),
+                                      if (isValid) {
+                                        showGameOverlay(-1)
+                                      } else {
+                                        showCorrectDialog(isValid, widget.colorProfile, -1)
+                                      }
+                                    }, 
+                                    style: ButtonStyle(
+                                      backgroundColor: WidgetStatePropertyAll(widget.colorProfile.checkAnswerButtonColor),
+                                    ),
+                                    child: Text(
+                                      'Check Answer',
+                                      style: TextStyle(color: widget.colorProfile.textColor),
+                                    )
+                                  )
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      currentCount = 0;
+                                      _selectedAnswers.clear();
+                                    });
+                                  },
                                   style: ButtonStyle(
-                                    backgroundColor: WidgetStatePropertyAll(widget.colorProfile.checkAnswerButtonColor),
+                                    backgroundColor: WidgetStatePropertyAll(widget.colorProfile.clearAnswerButtonColor),
                                   ),
                                   child: Text(
-                                    'Check Answer',
+                                    'Clear all answers',
                                     style: TextStyle(color: widget.colorProfile.textColor),
+                                    )
                                   )
-                                )
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    currentCount = 0;
-                                    _selectedAnswers.clear();
-                                  });
-                                },
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(widget.colorProfile.clearAnswerButtonColor),
-                                ),
-                                child: Text(
-                                  'Clear all answers',
-                                  style: TextStyle(color: widget.colorProfile.textColor),
-                                  )
-                                )
-                            ],
-                          ),
-                          const Positioned(
-                            right: 8,
-                            child: SizedBox(
-                              height: 32,
-                              child: Skip(),
+                              ],
                             ),
-                          ),
-                        ],
+                            const Positioned(
+                              right: 8,
+                              child: SizedBox(
+                                height: 32,
+                                child: Skip(),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     )
               ],
