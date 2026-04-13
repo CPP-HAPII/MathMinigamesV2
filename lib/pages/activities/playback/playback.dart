@@ -323,8 +323,10 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 8,
+                          runSpacing: 8,
                           children: renderConditionalLabels(),
                         ),
                       ],

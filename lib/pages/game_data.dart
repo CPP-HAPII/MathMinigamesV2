@@ -69,6 +69,41 @@ List<String> _normalizeToStringList(dynamic value) {
   return [value.toString()];
 }
 
+String _resolveQuestionTypeKey(Map<String, dynamic> doc) {
+  final String id = (doc['id'] as String? ?? '').toLowerCase();
+  final String type = (doc['type'] as String? ?? '').toLowerCase();
+  final String gameType = (doc['gameType'] as String? ?? '').toLowerCase();
+
+  if (id.startsWith('jumble') || type == 'jumblegamedata' || gameType == 'jumble') {
+    return 'jumble';
+  }
+  if (id.startsWith('playback') || type == 'playbackgamedata' || gameType == 'playback') {
+    return 'playback';
+  }
+  if (id.startsWith('reading') ||
+      type == 'readaloudgamedata' ||
+      gameType == 'readaloud' ||
+      gameType == 'read_aloud') {
+    return 'reading';
+  }
+  if (id.startsWith('typing') || type == 'typinggamedata' || gameType == 'typing') {
+    return 'typing';
+  }
+  if (id.startsWith('fill') ||
+      type == 'fillblanksgamedata' ||
+      gameType == 'fillblanks' ||
+      gameType == 'fill_blanks') {
+    return 'fill';
+  }
+
+  if (doc.containsKey('webAudioLink')) return 'playback';
+  if (doc.containsKey('blankForm') || doc.containsKey('blankform')) return 'fill';
+  if (doc.containsKey('displayedProblem') && doc.containsKey('optionList')) return 'jumble';
+  if (doc.containsKey('displayedProblem') && doc.containsKey('multiAcceptedAnswers')) return 'reading';
+
+  return '';
+}
+
 class SequenceData {
   const SequenceData({
     required this.difficulty,
@@ -279,7 +314,7 @@ class ReadAloudGameData extends GameData {
       multiAcceptedAnswers: _normalizeNestedAnswers(doc['multiAcceptedAnswers']),
       writtenPrompt: doc['writtenPrompt'] as String? ??
           "Answer the question by speaking into to the microphone.",
-      addtionalInstructions: doc['addtionalInstructions'] as String? ??
+      addtionalInstructions: (doc['addtionalInstructions'] ?? doc['additionalInstructions']) as String? ??
           "Your speech will be turned into numbers. Make sure you have microphone access enabled.",
       useNumWordProtocol: doc['useNumWordProtocol'] as bool? ?? true,
     );
@@ -346,7 +381,7 @@ class FillBlanksGameData extends GameData{
       displayedProblem: doc['displayedProblem'] as String,
       multiAcceptedAnswers: _normalizeToStringList(doc['multiAcceptedAnswers']),
       writtenPrompt: doc['writtenPrompt'] as String,
-      blankForm: doc['blankForm'] as String,
+      blankForm: (doc['blankForm'] ?? doc['blankform'] ?? '') as String,
       optionList: List<String>.from(doc['optionList'] ?? []),
     );
   }
@@ -997,19 +1032,21 @@ class GameDataBank {
       var q = questions[i];
       try {
         if (q is! Map<String, dynamic>) continue;
-        // Determine question type by id prefix when available
-        String id = (q['id'] is String) ? q['id'] : '';
+        final Map<String, dynamic> questionMap = Map<String, dynamic>.from(q);
+        final String questionType = _resolveQuestionTypeKey(questionMap);
 
-        if (id.startsWith('jumble')) {
-          questionBank.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
-        } else if (id.startsWith('playback')) {
-          questionBank.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
-        } else if (id.startsWith('reading')) {
-          questionBank.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
-        } else if (id.startsWith('typing')) {
-          questionBank.add(TypingGameData.fromFirestore(Map<String, dynamic>.from(q)));
-        } else if (id.startsWith('fill')) {
-          questionBank.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        if (questionType == 'jumble') {
+          questionBank.add(JumbleGameData.fromFirestore(questionMap));
+        } else if (questionType == 'playback') {
+          questionBank.add(PlaybackGameData.fromFirestore(questionMap));
+        } else if (questionType == 'reading') {
+          questionBank.add(ReadAloudGameData.fromFirestore(questionMap));
+        } else if (questionType == 'typing') {
+          questionBank.add(TypingGameData.fromFirestore(questionMap));
+        } else if (questionType == 'fill') {
+          questionBank.add(FillBlanksGameData.fromFirestore(questionMap));
+        } else {
+          logger.w("Skipping question at index $i because its type could not be resolved: $questionMap");
         }
       } catch (e) {
         logger.e("Error processing question at index $i: $e");
@@ -1592,28 +1629,20 @@ class GameDataBank {
         }
         if (!filterMatch) continue;
 
-        // Convert to GameData subtype and add to results
-        final String id = (q['id'] is String) ? q['id'] as String : '';
-        if (id.startsWith('jumble')) {
-          results.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
-        } else if (id.startsWith('playback')) {
-          results.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
-        } else if (id.startsWith('reading')) {
-          results.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
-        } else if (id.startsWith('typing')) {
-          results.add(TypingGameData.fromFirestore(Map<String, dynamic>.from(q)));
-        } else if (id.startsWith('fill')) {
-          results.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
+        final Map<String, dynamic> questionMap = Map<String, dynamic>.from(q);
+        final String questionType = _resolveQuestionTypeKey(questionMap);
+        if (questionType == 'jumble') {
+          results.add(JumbleGameData.fromFirestore(questionMap));
+        } else if (questionType == 'playback') {
+          results.add(PlaybackGameData.fromFirestore(questionMap));
+        } else if (questionType == 'reading') {
+          results.add(ReadAloudGameData.fromFirestore(questionMap));
+        } else if (questionType == 'typing') {
+          results.add(TypingGameData.fromFirestore(questionMap));
+        } else if (questionType == 'fill') {
+          results.add(FillBlanksGameData.fromFirestore(questionMap));
         } else {
-          if (q.containsKey('webAudioLink')) {
-            results.add(PlaybackGameData.fromFirestore(Map<String, dynamic>.from(q)));
-          } else if (q.containsKey('blankForm')) {
-            results.add(FillBlanksGameData.fromFirestore(Map<String, dynamic>.from(q)));
-          } else if (q.containsKey('displayedProblem') && q.containsKey('optionList')) {
-            results.add(JumbleGameData.fromFirestore(Map<String, dynamic>.from(q)));
-          } else if (q.containsKey('displayedProblem') && q.containsKey('multiAcceptedAnswers')) {
-            results.add(ReadAloudGameData.fromFirestore(Map<String, dynamic>.from(q)));
-          }
+          logger.i('Skipping question at index $i because its type could not be resolved.');
         }
       } catch (e, st) {
         logger.i('Failed to load question at index $i: $e');

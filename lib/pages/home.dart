@@ -552,7 +552,7 @@ class HomePageState extends State<HomePage> {
             ElevatedButton(
               style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(currentProfile.buttonColor)),
               onPressed: () => {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SeriesEndPage(colorProfile: currentProfile),))
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SeriesEndPage(colorProfile: currentProfile, userId: widget.userId),))
               }, 
               child: Text(
                 "Test the result page",

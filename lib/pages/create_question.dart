@@ -191,7 +191,7 @@ class _CustomQuestionPageState extends State<CustomQuestionPage> {
         'id': id,
         'gameType': 'FillBlanks',
         'type': 'FillBlanksGameData',
-        'blankform': blankForm,
+        'blankForm': blankForm,
         'displayedProblem': _displayProblemController.text.trim(),
         'writtenPrompt': "Use the options below to answer the word problem.",
         'multiAcceptedAnswers': acceptedAnswers,

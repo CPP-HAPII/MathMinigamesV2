@@ -171,7 +171,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
 
     const int scoreCache = 0;
     setState(() {
-      gameHighscore = prefs.setInt('score', scoreCache).then((_) {
+      gameScore = prefs.setInt('score', scoreCache).then((_) {
         logger.i("reset game score for this session");
         return scoreCache;
       });
@@ -192,18 +192,47 @@ class SeriesHomePageState extends State<SeriesHomePage> {
 
   Future<void> increaseHighScore() async {
     final SharedPreferencesWithCache prefs = await _prefs;
-    int? cachedScore = (prefs.getInt('score') ?? 0);
-    int? cachedHighScore = (prefs.getInt('highscore') ?? 0);
+    int cachedScore = (prefs.getInt('score') ?? 0);
+    int cachedHighScore = (prefs.getInt('highscore') ?? 0);
     bool shouldReplace = cachedScore > cachedHighScore;
     isHighScoreUpdated = shouldReplace;
 
     setState(() {
       int updatedScore = shouldReplace ? cachedScore : cachedHighScore;
-      gameScore = prefs.setInt('highscore', updatedScore).then((_) {
+      gameHighscore = prefs.setInt('highscore', updatedScore).then((_) {
         logger.d('Updating highscore...');
         return updatedScore;
       });
     });
+  }
+
+  Future<int> _readCurrentScore() async {
+    final SharedPreferencesWithCache prefs = await _prefs;
+    return prefs.getInt('score') ?? 0;
+  }
+
+  Future<void> completeSeries(int seriesCount) async {
+    endTime = Timestamp.now();
+    final int finalScore = await _readCurrentScore();
+    await increaseHighScore();
+    await writeData();
+    await resetCurrentScore();
+    await resetProgressCount();
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SeriesEndPage(
+          seriesCount: seriesCount,
+          showNewScore: isHighScoreUpdated,
+          userId: widget.userId,
+          finalScore: finalScore,
+        ),
+      ),
+    );
   }
   
   @override
@@ -344,15 +373,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
   /// Navigate to the next page listed in the selectPageOrder and construct the page for navigation
   void navigateToNextRandom(int index) {
     if (index >= randomPageOrderList.length) {
-      endTime = Timestamp.now();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SeriesEndPage(
-            seriesCount: randomPageOrderList.length,
-          ),
-        ),
-      );
+      completeSeries(randomPageOrderList.length);
       return;
     }
 
@@ -368,15 +389,7 @@ class SeriesHomePageState extends State<SeriesHomePage> {
   /// questions than the number defined in MaxQuestCount
     void navigateFixedSeries(int index) {
     if (index >= fixedPageOrderList.length) {
-      endTime = Timestamp.now();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SeriesEndPage(
-            seriesCount: fixedPageOrderList.length,
-          ),
-        ),
-      );
+      completeSeries(fixedPageOrderList.length);
       return;
     }
 
@@ -452,7 +465,8 @@ class SeriesHomePageState extends State<SeriesHomePage> {
                       backgroundColor:
                           WidgetStatePropertyAll(colorProfile.buttonColor),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
+                      PageDataManager().reset();
                       if (widget.difficultyType
                           .equals(DifficultyType.random)) {
                         selectRandPages();
@@ -460,7 +474,9 @@ class SeriesHomePageState extends State<SeriesHomePage> {
                         selectFixedPages();
                       }
 
-                      resetCorrectCount();
+                      await resetCorrectCount();
+                      await resetProgressCount();
+                      await resetCurrentScore();
 
                       try {
                         startTime = Timestamp.now();
@@ -497,10 +513,14 @@ class SeriesEndPage extends StatefulWidget {
     this.seriesCount = 5,
     this.showNewScore = false,
     this.colorProfile = greenFlavor,
+    required this.userId,
+    this.finalScore = 0,
   });
   final int seriesCount;
   final bool showNewScore;
   final ColorProfile colorProfile;
+  final String userId;
+  final int finalScore;
 
   @override
   State<StatefulWidget> createState() => SeriesEndPageState();
@@ -536,9 +556,7 @@ class SeriesEndPageState extends State<SeriesEndPage> {
     weakTopicList = _prefs.then((SharedPreferencesWithCache prefs) {
       return prefs.getStringList('weak_topics') ?? <String>[];
     });
-    score = _prefs.then((SharedPreferencesWithCache prefs) {
-      return prefs.getInt('score') ?? 0;
-    });
+    score = Future<int>.value(widget.finalScore);
     highscore = _prefs.then((SharedPreferencesWithCache prefs) {
       return prefs.getInt('highscore') ?? 0;
     });
@@ -644,7 +662,9 @@ class SeriesEndPageState extends State<SeriesEndPage> {
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: widget.showNewScore ? const Text("New highscore acheived!") : Text("Your score: $score")
+                            child: widget.showNewScore
+                                ? Text("New highscore acheived! Score: ${widget.finalScore}")
+                                : Text("Your score: ${widget.finalScore}")
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -660,7 +680,7 @@ class SeriesEndPageState extends State<SeriesEndPage> {
                                     Navigator.of(context).pop(),
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (context) => HomePage(userId: "000")
+                                        builder: (context) => HomePage(userId: widget.userId)
                                       )
                                     )
                                   }, 
