@@ -298,13 +298,21 @@ class PlaybackGameFormState extends GamePageState<PlaybackGameForm> {
                                 ),
                               ),
                             ),
-                          TranslateButtonAndText(
-                            sourceText: widget.questionLabel,
-                            colorProfile: widget.colorProfile,
-                            speakOnTranslate: true,
-                            targetLanguage: 'es',
-                            autoTranslate: assistLevel == LanguageAssistLevel.novice,
+                        TranslateButtonAndText(
+                          sourceText: widget.questionLabel,
+                          colorProfile: widget.colorProfile,
+                          speakOnTranslate: true,
+                          targetLanguage: 'es',
+                          autoTranslate: assistLevel == LanguageAssistLevel.novice,
+                          onTranslationShown: () => recordAssistUsage(
+                            LanguageAssistLevel.intermediate,
+                            'translation_displayed',
                           ),
+                          onTranslationSpoken: () => recordAssistUsage(
+                            LanguageAssistLevel.novice,
+                            'translation_heard',
+                          ),
+                        ),
                         ],
                       ),
                     ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:translator/translator.dart';
 import 'package:onwards/pages/constants.dart';
-import 'package:onwards/pages/tts.dart';
 
 
 class TranslateButtonAndText extends StatefulWidget {
@@ -13,6 +12,8 @@ class TranslateButtonAndText extends StatefulWidget {
     this.speakOnTranslate = false,
     this.targetLanguage = 'es',
     this.autoTranslate = false,
+    this.onTranslationShown,
+    this.onTranslationSpoken,
   });
 
   final String sourceText;
@@ -20,6 +21,8 @@ class TranslateButtonAndText extends StatefulWidget {
   final bool speakOnTranslate;
   final String targetLanguage;
   final bool autoTranslate;
+  final VoidCallback? onTranslationShown;
+  final VoidCallback? onTranslationSpoken;
 
   @override
   State<TranslateButtonAndText> createState() => _TranslateButtonAndTextState();
@@ -52,6 +55,7 @@ class _TranslateButtonAndTextState extends State<TranslateButtonAndText> {
       setState(() {
         _translation = translated.toString();
       });
+      widget.onTranslationShown?.call();
     } catch (e) {
       setState(() {
         _translation = 'Translation failed';
@@ -64,6 +68,7 @@ class _TranslateButtonAndTextState extends State<TranslateButtonAndText> {
   }
 
   Future<void> _speak(String text) async {
+    widget.onTranslationSpoken?.call();
     await _flutterTts.setLanguage(widget.targetLanguage);
     await _flutterTts.setPitch(1.0);
     await _flutterTts.setSpeechRate(1.0);

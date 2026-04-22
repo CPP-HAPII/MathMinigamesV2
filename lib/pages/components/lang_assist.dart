@@ -10,12 +10,16 @@ extension LanguageAssistLevelExt on LanguageAssistLevel {
   String get label {
     switch (this) {
       case LanguageAssistLevel.novice:
-        return "Novice";
+        return "Full Assist";
       case LanguageAssistLevel.intermediate:
-        return "Intermediate";
+        return "Half Assist";
       case LanguageAssistLevel.advanced:
-        return "Advanced";
+        return "Low Assist";
     }
+  }
+
+  String get storageValue {
+    return name;
   }
 }
 

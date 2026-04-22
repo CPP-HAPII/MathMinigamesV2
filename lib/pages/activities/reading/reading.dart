@@ -234,6 +234,10 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
                     text: widget.questionLabel,
                     colorProfile: currentProfile,
                     assistLevel: assistLevel,
+                    onTranslationHover: () => recordAssistUsage(
+                      LanguageAssistLevel.advanced,
+                      'hover_translation',
+                    ),
                   ),
                 ),
 
@@ -266,6 +270,14 @@ class AudioTranscriptionWidgetState extends GamePageState<AudioTranscriptionWidg
                           speakOnTranslate: true,
                           targetLanguage: 'es',
                           autoTranslate: assistLevel == LanguageAssistLevel.novice,
+                          onTranslationShown: () => recordAssistUsage(
+                            LanguageAssistLevel.intermediate,
+                            'translation_displayed',
+                          ),
+                          onTranslationSpoken: () => recordAssistUsage(
+                            LanguageAssistLevel.novice,
+                            'translation_heard',
+                          ),
                         ),
                       ],
                     ),

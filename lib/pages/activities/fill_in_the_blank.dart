@@ -306,6 +306,10 @@ class GameFormState extends GamePageState<GameForm> {
                     text: widget.questionLabel,
                     colorProfile: widget.colorProfile,
                     assistLevel: assistLevel,
+                    onTranslationHover: () => recordAssistUsage(
+                      LanguageAssistLevel.advanced,
+                      'hover_translation',
+                    ),
                   ),
                 ),
                 if (assistLevel == LanguageAssistLevel.novice ||
@@ -337,6 +341,14 @@ class GameFormState extends GamePageState<GameForm> {
                           speakOnTranslate: true,
                           targetLanguage: 'es',
                           autoTranslate: assistLevel == LanguageAssistLevel.novice,
+                          onTranslationShown: () => recordAssistUsage(
+                            LanguageAssistLevel.intermediate,
+                            'translation_displayed',
+                          ),
+                          onTranslationSpoken: () => recordAssistUsage(
+                            LanguageAssistLevel.novice,
+                            'translation_heard',
+                          ),
                         ),
                       ],
                     ),

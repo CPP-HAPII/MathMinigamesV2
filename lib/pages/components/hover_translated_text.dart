@@ -8,6 +8,7 @@ class HoverTranslatedText extends StatefulWidget {
   final ColorProfile colorProfile;
   final LanguageAssistLevel? assistLevel;
   final String targetLanguage;
+  final VoidCallback? onTranslationHover;
 
   const HoverTranslatedText({
     super.key,
@@ -15,6 +16,7 @@ class HoverTranslatedText extends StatefulWidget {
     required this.colorProfile,
     required this.assistLevel,
     this.targetLanguage = 'es',
+    this.onTranslationHover,
   });
 
   @override
@@ -28,8 +30,11 @@ class _HoverTranslatedTextState extends State<HoverTranslatedText> {
 
   void _requestTranslation(String word) {
     if (_translationCache.containsKey(word) ||
-        _loadingWords.contains(word)) return;
+        _loadingWords.contains(word)) {
+      return;
+    }
 
+    widget.onTranslationHover?.call();
     _loadingWords.add(word);
 
     TranslationService.translate(

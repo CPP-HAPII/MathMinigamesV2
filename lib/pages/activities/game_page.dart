@@ -5,6 +5,7 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:onwards/pages/constants.dart';
 import 'package:onwards/pages/data_manager.dart';
+import 'package:onwards/pages/components/lang_assist.dart';
 import 'package:onwards/pages/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onwards/pages/components/theme_controller.dart';
@@ -53,6 +54,8 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
   bool isCorrect = false;
   bool madeMistake = false;
   late String questionId;
+  final Set<String> _assistInteractions = <String>{};
+  LanguageAssistLevel? _loggedAssistLevel;
 
   @override
   void initState() {
@@ -146,6 +149,8 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
       "skills" : skillsTested,
       "result" : isCorrect,
       "timeTakenInSeconds" : duration.inSeconds,
+      "assistUsed": _loggedAssistLevel?.storageValue,
+      "assistInteractions": _assistInteractions.toList(),
     });
 
     PageDataManager().prettyPrintPageData();
@@ -158,8 +163,27 @@ abstract class GamePageState<T extends GamePage> extends State<T> {
     super.dispose();
   }
 
+  void recordAssistUsage(LanguageAssistLevel level, String interaction) {
+    _assistInteractions.add(interaction);
+
+    if (_loggedAssistLevel == null || _assistPriority(level) > _assistPriority(_loggedAssistLevel!)) {
+      _loggedAssistLevel = level;
+    }
+  }
+
+  int _assistPriority(LanguageAssistLevel level) {
+    switch (level) {
+      case LanguageAssistLevel.advanced:
+        return 1;
+      case LanguageAssistLevel.intermediate:
+        return 2;
+      case LanguageAssistLevel.novice:
+        return 3;
+    }
+  }
+
   Future<void> loadTheme() async {
-    final SharedPreferencesWithCache prefs = await userSessionCache;
+    await userSessionCache;
     setState(() {
       logger.i("Loaded theme: ${widget.colorProfile.idKey}");
       currentProfile = widget.colorProfile;

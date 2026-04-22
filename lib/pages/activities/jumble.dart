@@ -323,12 +323,16 @@ class GameFormState extends GamePageState<GameForm> {
                   ),
                   buildTextCard(
                     profile: widget.colorProfile,
-                    child: HoverTranslatedText(
-                      text: widget.questionLabel,
-                      colorProfile: widget.colorProfile,
-                      assistLevel: assistLevel,
+                  child: HoverTranslatedText(
+                    text: widget.questionLabel,
+                    colorProfile: widget.colorProfile,
+                    assistLevel: assistLevel,
+                    onTranslationHover: () => recordAssistUsage(
+                      LanguageAssistLevel.advanced,
+                      'hover_translation',
                     ),
                   ),
+                ),
 
                   if (assistLevel == LanguageAssistLevel.novice ||
                       assistLevel == LanguageAssistLevel.intermediate)
@@ -352,13 +356,21 @@ class GameFormState extends GamePageState<GameForm> {
                                 ),
                               ),
                             ),
-                          TranslateButtonAndText(
-                            sourceText: widget.questionLabel,
-                            colorProfile: widget.colorProfile,
-                            speakOnTranslate: true,
-                            targetLanguage: 'es',
-                            autoTranslate: assistLevel == LanguageAssistLevel.novice,
+                        TranslateButtonAndText(
+                          sourceText: widget.questionLabel,
+                          colorProfile: widget.colorProfile,
+                          speakOnTranslate: true,
+                          targetLanguage: 'es',
+                          autoTranslate: assistLevel == LanguageAssistLevel.novice,
+                          onTranslationShown: () => recordAssistUsage(
+                            LanguageAssistLevel.intermediate,
+                            'translation_displayed',
                           ),
+                          onTranslationSpoken: () => recordAssistUsage(
+                            LanguageAssistLevel.novice,
+                            'translation_heard',
+                          ),
+                        ),
                         ],
                       ),
                     ),
