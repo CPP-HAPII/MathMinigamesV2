@@ -4,7 +4,7 @@
       "android": {
         "default": {
           "projectId": "onwards-448b0",
-          "appId": "1:558025501989:android:b72cb9a96b6f50ca40fecc",
+          "appId": "1:857898637855:web:eecd802b0d44fa5825132a",
           "fileOutput": "android/app/google-services.json"
         }
       },
@@ -12,11 +12,11 @@
         "lib/firebase_options.dart": {
           "projectId": "onwards-448b0",
           "configurations": {
-            "android": "1:558025501989:android:b72cb9a96b6f50ca40fecc",
-            "ios": "1:558025501989:ios:79ef051c6935f8ec40fecc",
-            "macos": "1:558025501989:ios:79ef051c6935f8ec40fecc",
-            "web": "1:558025501989:web:3fbe453cbbcf1ec240fecc",
-            "windows": "1:558025501989:web:e04cfe4cd2a53ab040fecc"
+            "android": "1:857898637855:web:eecd802b0d44fa5825132a",
+            "ios": "1:857898637855:web:eecd802b0d44fa5825132a",
+            "macos": "1:857898637855:web:eecd802b0d44fa5825132a",
+            "web": "1:857898637855:web:eecd802b0d44fa5825132a",
+            "windows": "1:857898637855:web:eecd802b0d44fa5825132a"
           }
         }
       }
@@ -38,5 +38,11 @@
       "**/.*",
       "**/node_modules/**"
     ]
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "nam5",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   }
 }

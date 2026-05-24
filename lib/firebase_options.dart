@@ -42,8 +42,8 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: '???',
-    appId: '1:558025501989:web:3fbe453cbbcf1ec240fecc',
-    messagingSenderId: '558025501989',
+    appId: '1:857898637855:web:eecd802b0d44fa5825132a',
+    messagingSenderId: '857898637855',
     projectId: 'onwards-448b0',
     authDomain: 'onwards-448b0.firebaseapp.com',
     storageBucket: 'onwards-448b0.firebasestorage.app',
@@ -52,16 +52,16 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: '???',
-    appId: '1:558025501989:android:b72cb9a96b6f50ca40fecc',
-    messagingSenderId: '558025501989',
+    appId: '1:857898637855:web:eecd802b0d44fa5825132a',
+    messagingSenderId: '857898637855',
     projectId: 'fir-79444',
     storageBucket: 'fir-79444.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: '???',
-    appId: '1:558025501989:ios:79ef051c6935f8ec40fecc',
-    messagingSenderId: '558025501989',
+    appId: '1:857898637855:web:eecd802b0d44fa5825132a',
+    messagingSenderId: '857898637855',
     projectId: 'fir-79444',
     storageBucket: 'fir-79444.firebasestorage.app',
     iosBundleId: 'com.example.signinExample',
@@ -69,8 +69,8 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: '???',
-    appId: '1:558025501989:ios:79ef051c6935f8ec40fecc',
-    messagingSenderId: '558025501989',
+    appId: '1:857898637855:web:eecd802b0d44fa5825132a',
+    messagingSenderId: '857898637855',
     projectId: 'fir-79444',
     storageBucket: 'fir-79444.firebasestorage.app',
     iosBundleId: 'com.example.signinExample',
@@ -78,8 +78,8 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: '???',
-    appId: '1:558025501989:web:e04cfe4cd2a53ab040fecc',
-    messagingSenderId: '558025501989',
+    appId: '1:857898637855:web:eecd802b0d44fa5825132a',
+    messagingSenderId: '857898637855',
     projectId: 'fir-79444',
     authDomain: 'fir-79444.firebaseapp.com',
     storageBucket: 'fir-79444.firebasestorage.app',

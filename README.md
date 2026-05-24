@@ -42,3 +42,16 @@ firebase login
 You might need to run this to setup your project:
 
 flutterfire configure --project-fir-79444
+
+
+### Testing V2 Deployment
+Note: Remember to update firebase rule to be within allowed timeframe
+
+npm install -g firebase-tools
+firebase login
+firebase init
+firebase deploy
+
+https://onwards-448b0.web.app/ 
+
+Updated App ID in firebase.json & firebase_options.dart
